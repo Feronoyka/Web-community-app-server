@@ -4,7 +4,6 @@ export interface HashConfig {
   SALT_ROUNDS: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 export const hashConfig = registerAs(
   'hash',
   (): HashConfig => ({
