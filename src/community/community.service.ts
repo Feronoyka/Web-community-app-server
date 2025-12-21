@@ -88,7 +88,7 @@ export class CommunityService {
       const followed = await this.userRepository
         .createQueryBuilder('user')
         .leftJoin('user.followedCommunities', 'community')
-        .where('user.id = :uid', { uid: viewerId })
+        .where('user.id = :userid', { userid: viewerId })
         .select('community.id', 'id')
         .getRawMany();
 
