@@ -24,11 +24,13 @@ export class UserController {
     return user;
   }
 
+  // view other users' public profiles
   @Get(':id')
   public async findOne(@Param('id') id: string): Promise<UserResponseDto> {
     return await this.findOneOrFail(id);
   }
 
+  // edit own public profile
   @Put(':id')
   @UseGuards(AuthGuard('jwt'), OwnerGuard)
   public async update(

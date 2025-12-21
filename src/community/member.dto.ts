@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class UserResponseDto {
+export class MemberDto {
   @Expose()
   id: string;
 
@@ -9,10 +9,4 @@ export class UserResponseDto {
 
   @Expose()
   domainName: string;
-
-  @Expose()
-  pronouns: string;
-
-  @Expose()
-  description: string;
 }

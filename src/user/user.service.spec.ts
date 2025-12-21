@@ -81,6 +81,7 @@ describe('UserService', () => {
     // @ts-expect-ignore
     (repo.findOneBy as jest.Mock).mockResolvedValueOnce(user);
     expect(await service.findOneById('1')).toEqual({
+      id: '1',
       username: 'u',
       domainName: 'd',
       pronouns: 'x',
@@ -110,6 +111,7 @@ describe('UserService', () => {
 
     const updated = await service.updateById('1', { username: 'new' });
     expect(updated).toEqual({
+      id: '1',
       username: 'new',
       domainName: 'd',
       pronouns: 'x',

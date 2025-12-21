@@ -34,6 +34,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) return null;
     return {
+      id: user.id,
       username: user.username,
       domainName: user.domainName,
       pronouns: user?.pronouns,
@@ -54,6 +55,7 @@ export class UserService {
 
     const saved = await this.userRepository.save(user);
     return {
+      id: saved.id,
       username: saved.username,
       domainName: saved.domainName,
       pronouns: saved.pronouns,

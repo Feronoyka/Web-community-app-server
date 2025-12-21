@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { authConfig } from './config/auth.config';
 import { User } from './user/user.entity';
 import { TypedConfigService } from './config/typed-config.service';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TypedConfigService } from './config/typed-config.service';
       }),
     }),
     UserModule,
+    CommunityModule,
   ],
   controllers: [AppController, AuthController],
   providers: [
