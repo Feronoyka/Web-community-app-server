@@ -39,6 +39,7 @@ export class UserController {
   ): Promise<UserResponseDto> {
     const updatedUser = await this.userService.updateById(id, updateUserDto);
     if (!updatedUser) throw new NotFoundException('User not found');
+
     return updatedUser;
   }
 
@@ -46,6 +47,7 @@ export class UserController {
   async findOneOrFail(id: string) {
     const user = await this.userService.findOneById(id);
     if (!user) throw new NotFoundException('User not found');
+
     return user;
   }
 }

@@ -12,7 +12,7 @@ export class OwnerGuard implements CanActivate {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const req = ctx.switchToHttp().getRequest<any>();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const jwtSub = req.user?.sub as string | undefined;
+    const jwtSub = req.user?.sub as string;
     if (!jwtSub) throw new UnauthorizedException();
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

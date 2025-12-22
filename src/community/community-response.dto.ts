@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { MemberDto } from './member.dto';
+import { MemberDto } from './member-preview.dto';
 
 export class CommunityResponseDto {
   @Expose()

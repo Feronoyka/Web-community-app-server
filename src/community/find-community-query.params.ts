@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength, IsIn } from 'class-validator';
+import { IsOptional, IsString, MinLength, IsIn, IsEnum } from 'class-validator';
 
 export class FindCommunityQueryParams {
   @IsOptional()
@@ -11,6 +11,6 @@ export class FindCommunityQueryParams {
   sortBy?: string = 'followerCount';
 
   @IsOptional()
-  @IsIn(['ASC', 'DESC'])
+  @IsEnum(['ASC', 'DESC'])
   sortOrder?: 'ASC' | 'DESC' = 'ASC';
 }

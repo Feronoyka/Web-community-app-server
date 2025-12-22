@@ -6,7 +6,4 @@ export class MemberDto {
 
   @Expose()
   username: string;
-
-  @Expose()
-  domainName: string;
 }
