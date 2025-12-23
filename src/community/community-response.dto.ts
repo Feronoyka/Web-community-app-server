@@ -1,5 +1,5 @@
-import { Expose, Type } from 'class-transformer';
-import { MemberDto } from './member-preview.dto';
+import { Expose } from 'class-transformer';
+import { MemberPreviewDto } from './member-preview.dto';
 
 export class CommunityResponseDto {
   @Expose()
@@ -9,7 +9,7 @@ export class CommunityResponseDto {
   name: string;
 
   @Expose()
-  isFollowed: boolean;
+  isFollowed?: boolean;
 
   @Expose()
   description?: string;
@@ -18,6 +18,9 @@ export class CommunityResponseDto {
   followerCount: number;
 
   @Expose()
-  @Type(() => MemberDto)
-  members: MemberDto[];
+  members: MemberPreviewDto[] = [];
+
+  constructor(partial: Partial<CommunityResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

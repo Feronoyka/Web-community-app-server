@@ -1,9 +1,4 @@
-import { Expose } from 'class-transformer';
-
-export class MemberDto {
-  @Expose()
+export class MemberPreviewDto {
   id: string;
-
-  @Expose()
   username: string;
 }
