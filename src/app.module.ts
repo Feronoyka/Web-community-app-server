@@ -9,6 +9,7 @@ import { authConfig } from './config/auth.config';
 import { User } from './user/user.entity';
 import { TypedConfigService } from './config/typed-config.service';
 import { CommunityModule } from './community/community.module';
+import { Community } from './community/community.entity';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { CommunityModule } from './community/community.module';
       useFactory: (configService: TypedConfigService) => ({
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         ...configService.get('database'),
-        entities: [User],
+        entities: [User, Community],
       }),
     }),
     UserModule,

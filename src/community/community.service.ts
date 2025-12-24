@@ -10,8 +10,8 @@ import { Community } from './community.entity';
 import { User } from '../user/user.entity';
 import { PaginationParams } from 'src/common/pagination.params';
 import { FindCommunityQueryParams } from './find-community-query.params';
-import { CommunityResponseDto } from './community-response.dto';
 import { CreateCommunityDto } from './create-community.dto';
+import { UpdateCommunityDto } from './update-community.dto';
 
 @Injectable()
 export class CommunityService {
@@ -46,7 +46,7 @@ export class CommunityService {
   public async findOne(
     communityId: string,
     currentUserId: string,
-  ): Promise<CommunityResponseDto | null> {
+  ): Promise<Community> {
     const query = this.communityRepository
       .createQueryBuilder('community')
       .loadRelationCountAndMap('community.followerCount', 'community.members')
@@ -54,7 +54,8 @@ export class CommunityService {
       .where('community.id = :id', { id: communityId });
 
     const community = await query.getOne();
-    if (!community) return null;
+
+    if (!community) throw new NotFoundException('Community not found');
 
     // check if current user already follows this community
     const isFollowing = currentUserId
@@ -69,11 +70,11 @@ export class CommunityService {
       .take(10)
       .getMany();
 
-    return new CommunityResponseDto({
+    return {
       ...community,
       isFollowing,
       members: membersPreview,
-    });
+    };
   }
 
   public async follow(communityId: string, userId: string): Promise<boolean> {
@@ -160,6 +161,14 @@ export class CommunityService {
       throw new ForbiddenException('Only owner can delete community');
 
     await this.communityRepository.remove(community);
+  }
+
+  public async updateCommunity(
+    community: Community,
+    updateCommunityDto: UpdateCommunityDto,
+  ): Promise<Community> {
+    Object.assign(community, updateCommunityDto);
+    return await this.communityRepository.save(community);
   }
 
   private async isFollowed(

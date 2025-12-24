@@ -17,6 +17,9 @@ export class Community {
   @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
   name: string;
 
+  @Column({ type: 'boolean', default: false })
+  isFollowing: boolean;
+
   @Column({ type: 'varchar', length: 300, nullable: true })
   description?: string;
 

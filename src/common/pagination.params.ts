@@ -6,7 +6,7 @@ export class PaginationParams {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit: number = 5;
+  limit: number = 10;
 
   @IsOptional()
   @Type(() => Number)
