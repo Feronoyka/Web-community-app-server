@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 export const appSchemaConfig = Joi.object({
   DB_HOST: Joi.string().default('localhost'),

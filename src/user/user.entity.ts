@@ -24,17 +24,16 @@ export class User {
   password: string;
 
   @Column({ nullable: false, unique: true })
-  @Exclude()
   email: string;
 
   @Column({ type: 'varchar', length: 20, nullable: false })
   username: string;
 
-  @Column({ type: 'enum', enum: Pronouns, default: Pronouns.None })
-  pronouns: Pronouns;
+  @Column({ type: 'enum', enum: Pronouns, nullable: true })
+  pronouns: Pronouns | null;
 
-  @Column({ type: 'varchar', length: 300 })
-  description: string;
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  description: string | null;
 
   @OneToMany(() => Community, (community) => community.owner)
   ownedCommunities: Community[];

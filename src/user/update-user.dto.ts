@@ -13,5 +13,5 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @MaxLength(300)
-  description?: string;
+  description?: string | null;
 }

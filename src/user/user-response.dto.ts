@@ -11,8 +11,8 @@ export class UserResponseDto {
   domainName: string;
 
   @Expose()
-  pronouns: string;
+  pronouns: string | null;
 
   @Expose()
-  description: string;
+  description: string | null;
 }

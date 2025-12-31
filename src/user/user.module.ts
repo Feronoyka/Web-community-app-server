@@ -11,16 +11,16 @@ import { User } from './user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/config/auth.config';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    // ...existing code...
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const authConfig = configService.get<AuthConfig>('auth');
+      useFactory: (config: ConfigService) => {
+        const authConfig = config.get<AuthConfig>('auth');
         return {
           secret: authConfig?.jwt.secret,
           signOptions: {
@@ -30,7 +30,13 @@ import { AuthConfig } from 'src/config/auth.config';
       },
     }),
   ],
-  providers: [UserService, PasswordService, AuthService, OwnerGuard],
+  providers: [
+    UserService,
+    PasswordService,
+    AuthService,
+    OwnerGuard,
+    JwtStrategy,
+  ],
   controllers: [UserController, AuthController],
 })
 export class UserModule {}

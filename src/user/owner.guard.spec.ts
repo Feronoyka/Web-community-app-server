@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ExecutionContext } from '@nestjs/common';
 import { OwnerGuard } from './owner.guard';
 

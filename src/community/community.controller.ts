@@ -15,10 +15,10 @@ import {
 import { CommunityService } from './community.service';
 import { CreateCommunityDto } from './create-community.dto';
 import { AuthGuard } from '@nestjs/passport';
-import type { AuthRequest } from 'src/user/auth/auth.request';
+import type { AuthRequest } from '../user/auth/auth.request';
 import { FindCommunityQueryParams } from './find-community-query.params';
-import { PaginationParams } from 'src/common/pagination.params';
-import { PaginationResponse } from 'src/common/pagination-response.params';
+import { PaginationParams } from '../common/pagination.params';
+import { PaginationResponse } from '../common/pagination-response.params';
 import { Community } from './community.entity';
 import { UpdateCommunityDto } from './update-community.dto';
 
