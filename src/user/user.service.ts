@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -26,8 +27,20 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  public async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  public async findAll(filter): Promise<[User[], number]> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .take(5)
+      .skip(0);
+
+    if (filter.search) {
+      query.where(
+        'user.username ILIKE :search OR user.domainName ILIKE :search',
+        { search: `%${filter.search}%` },
+      );
+    }
+
+    return await query.getManyAndCount();
   }
 
   public async findOneById(id: string): Promise<UserResponseDto | null> {

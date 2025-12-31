@@ -5,27 +5,9 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { TestUser } from './test-user.model';
 import { TestSetup } from './utils/test-setup';
+import { generateUser } from './utils/generate-user';
 
 describe('AuthController (e2e)', () => {
-  const generateRandomName = (length = 6) => {
-    const characters = 'abcdefghijklmnopqrstuvwxyz123456789';
-    let result = '';
-
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
-    }
-
-    return result;
-  };
-
-  const generateUser = () => ({
-    domainName: generateRandomName(),
-    username: 'Alisher',
-    email: `user${Date.now()}@test.com`,
-    password: 'Password123',
-  });
-
   let testSetup: TestSetup;
   let testUser: TestUser;
 

@@ -2,7 +2,7 @@ import { IsOptional, IsString, MinLength, IsIn, IsEnum } from 'class-validator';
 
 export class FindCommunityQueryParams {
   @IsOptional()
-  @MinLength(3)
+  @MinLength(0)
   @IsString()
   search?: string;
 

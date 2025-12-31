@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Param,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,15 +14,26 @@ import { UserService } from './user.service';
 import { User } from './user.entity';
 import { UserResponseDto } from './user-response.dto';
 import { UpdateUserDto } from './update-user.dto';
+import { FindUserQueryParams } from './find-user.query.param';
+import { PaginationResponse } from 'src/common/pagination-response.params';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  public async findAll(): Promise<User[]> {
-    const user = await this.userService.findAll();
-    return user;
+  public async findAll(
+    @Query() filter: FindUserQueryParams,
+  ): Promise<PaginationResponse<User>> {
+    const [users, total] = await this.userService.findAll(filter);
+    return {
+      data: users,
+      meta: {
+        total,
+        offset: 0,
+        limit: 5,
+      },
+    };
   }
 
   // view other users' public profiles
