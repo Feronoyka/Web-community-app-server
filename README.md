@@ -21,7 +21,7 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 ## Description
-Web community app build by NestJs framework, postgres, typeORM, Websocket with authentication and authorization feature and with complete e2e test
+Web community app built by NestJs framework, postgres database, typeORM relation, Websocket, real-time, RESTful API and with authentication and authorization feature and with complete e2e test
 
 ## Project setup
 
