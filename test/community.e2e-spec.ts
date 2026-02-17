@@ -42,7 +42,7 @@ describe('CommunityController (e2e) test', () => {
     await testSetup.teardown();
   });
 
-  it('Create the community successfully- POST /community', async () => {
+  it('Create the community successfully - POST /community', async () => {
     return await request(testSetup.app.getHttpServer())
       .post('/community')
       .set('Authorization', `Bearer ${token}`)
@@ -124,7 +124,7 @@ describe('CommunityController (e2e) test', () => {
     const anotherUser = {
       domainName: 'anotherdomain',
       username: 'anotheruser',
-      email: 'another@test.com', // Другой email!
+      email: 'another@test.com',
       password: 'Password123',
     };
 
@@ -157,7 +157,7 @@ describe('CommunityController (e2e) test', () => {
     const anotherUser = {
       domainName: 'anotherdomain',
       username: 'anotheruser',
-      email: 'another@test.com', // Другой email!
+      email: 'another@test.com',
       password: 'Password123',
     };
 
@@ -195,7 +195,7 @@ describe('CommunityController (e2e) test', () => {
     const anotherUser = {
       domainName: 'anotherdomain',
       username: 'anotheruser',
-      email: 'another@test.com', // Другой email!
+      email: 'another@test.com',
       password: 'Password123',
     };
 

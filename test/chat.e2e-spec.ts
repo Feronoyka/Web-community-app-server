@@ -100,7 +100,7 @@ describe('ChatGateway (e2e)', () => {
       auth: { token: `Bearer ${firstUsertoken}` },
     });
 
-    await new Promise((resolve) => clientSocket.on('connect', resolve));
+    await new Promise<void>((resolve) => clientSocket.on('connect', resolve));
 
     clientSocket.emit('joinCommunity', communityId);
 
