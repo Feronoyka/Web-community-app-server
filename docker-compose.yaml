@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: feno
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: xd62ix1o1f41ck
+      POSTGRES_DB: feno
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready -U postgres -d feno || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
