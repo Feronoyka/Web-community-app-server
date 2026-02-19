@@ -6,5 +6,5 @@ export class LoginResponseDto {
   }
 
   @Expose()
-  accessToken: string;
+  accessToken!: string;
 }

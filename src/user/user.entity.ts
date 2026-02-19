@@ -16,47 +16,47 @@ import { Conversation } from '../chat/entities/conversation.entity';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
-  domainName: string;
+  domainName!: string;
 
   @Column({ type: 'varchar', length: 100, select: false })
   @Exclude()
-  password: string;
+  password!: string;
 
   @Column({ nullable: false, unique: true })
-  email: string;
+  email!: string;
 
   @Column({ type: 'varchar', length: 20, nullable: false })
-  username: string;
+  username!: string;
 
   @Column({ type: 'enum', enum: Pronouns, nullable: true })
-  pronouns: Pronouns | null;
+  pronouns!: Pronouns | null;
 
   @Column({ type: 'varchar', length: 300, nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @OneToMany(() => Community, (community) => community.owner)
-  ownedCommunities: Community[];
+  ownedCommunities!: Community[];
 
   @ManyToMany(() => Community, (community) => community.members)
-  followedCommunities: Community[];
+  followedCommunities!: Community[];
 
   @OneToMany(() => Message, (message) => message.sender)
-  sentMessages: Message[];
+  sentMessages!: Message[];
 
   @OneToMany(() => Message, (message) => message.receiver)
-  receivedMessages: Message[];
+  receivedMessages!: Message[];
 
   @ManyToMany(() => Conversation, (conversation) => conversation.participants)
-  conversation: Conversation[];
+  conversation!: Conversation[];
 
   @CreateDateColumn()
   @Exclude()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
   @Exclude()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

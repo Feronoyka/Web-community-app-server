@@ -27,7 +27,7 @@ export class CreateUserDto {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? value.trim() : value,
   )
-  domainName: string; // domain name
+  domainName!: string; // domain name
 
   @IsNotEmpty({
     message: 'Please provide a username',
@@ -40,7 +40,7 @@ export class CreateUserDto {
   })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  username: string; // username
+  username!: string; // username
 
   @IsNotEmpty({
     message: 'Email is empty',
@@ -50,7 +50,7 @@ export class CreateUserDto {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
-  email: string; // email
+  email!: string; // email
 
   @IsNotEmpty()
   @IsString()
@@ -61,5 +61,5 @@ export class CreateUserDto {
   })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  password: string; // password
+  password!: string; // password
 }

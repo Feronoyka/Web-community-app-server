@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // ...existing code...
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import * as jest from 'jest';
 
 describe('UserController', () => {
   let controller: UserController;

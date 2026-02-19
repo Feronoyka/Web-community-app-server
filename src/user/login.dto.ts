@@ -16,10 +16,10 @@ export class LoginDto {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
-  email: string;
+  email!: string;
 
   @IsNotEmpty({ message: 'Password should not be empty' })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  password: string;
+  password!: string;
 }

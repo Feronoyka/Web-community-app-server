@@ -2,17 +2,17 @@ import { Expose } from 'class-transformer';
 
 export class UserResponseDto {
   @Expose()
-  id: string;
+  id!: string;
 
   @Expose()
-  username: string;
+  username!: string;
 
   @Expose()
-  domainName: string;
+  domainName!: string;
 
   @Expose()
-  pronouns: string | null;
+  pronouns!: string | null;
 
   @Expose()
-  description: string | null;
+  description!: string | null;
 }
