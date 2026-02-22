@@ -45,6 +45,7 @@ export class UserService {
     return await query.getManyAndCount();
   }
 
+  // Returns the user for API
   public async findOneById(id: string): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) return null;
@@ -57,6 +58,12 @@ export class UserService {
     };
   }
 
+  // Returns the User entity for auth (e.g. token generation.
+  public async findOneByIdEntity(id: string): Promise<User | null> {
+    return this.userRepository.findOneBy({ id });
+  }
+
+  // For editing profile
   public async updateById(
     id: string,
     updateUserDto: Partial<Pick<User, 'username' | 'pronouns' | 'description'>>,
@@ -78,11 +85,11 @@ export class UserService {
     };
   }
 
-  public async findOneByEmail(email: string): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) return null;
-    return user;
-  }
+  // public async findOneByEmail(email: string): Promise<User | null> {
+  //   const user = await this.userRepository.findOneBy({ email });
+  //   if (!user) return null;
+  //   return user;
+  // }
 
   public async findOneByEmailWithPassword(email: string): Promise<User | null> {
     return await this.userRepository
@@ -92,11 +99,13 @@ export class UserService {
       .getOne();
   }
 
-  public async deleteUser(userId: string): Promise<void> {
-    await this.userRepository.delete(userId);
-  }
-
+  // For searching the user by domainName
   public async findOneByDomainName(domainName: string): Promise<User | null> {
     return await this.userRepository.findOneBy({ domainName });
+  }
+
+  // For deleting account
+  public async deleteUser(userId: string): Promise<void> {
+    await this.userRepository.delete(userId);
   }
 }

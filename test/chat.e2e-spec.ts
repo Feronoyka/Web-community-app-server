@@ -3,8 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import request from 'supertest';
-// import { INestApplication } from '@nestjs/common';
-// import { Test } from '@nestjs/testing';
 import { io, Socket } from 'socket.io-client';
 import { AppModule } from '../src/app.module';
 import { TestSetup } from './utils/test-setup';
@@ -91,8 +89,8 @@ describe('ChatGateway (e2e)', () => {
   });
 
   afterAll(async () => {
+    if (server) await server.close();
     await testSetup.teardown();
-    await server.close();
   });
 
   it('should send and receive messages in community chat', async () => {

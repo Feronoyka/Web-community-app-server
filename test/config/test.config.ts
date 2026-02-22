@@ -9,10 +9,18 @@ export const testConfig = {
     synchronize: true,
   },
 
+  // Must match AuthConfig shape: accessToken and refreshToken used by AuthService (and JwtStrategy uses jwt.secret).
   auth: {
     jwt: {
       secret: 'secret-123',
-      expiresIn: '1m',
+      accessToken: {
+        secret: 'secret-123',
+        expiresIn: '60', // seconds; used as number by auth.service
+      },
+      refreshToken: {
+        secret: 'refresh-secret-123',
+        expiresIn: '604800', // 7d in seconds
+      },
     },
   },
 };

@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ExecutionContext } from '@nestjs/common';
 import { OwnerGuard } from './owner.guard';
+import { describe, beforeEach, it } from 'node:test';
 
 describe('OwnerGuard', () => {
   let guard: OwnerGuard;
@@ -35,3 +38,28 @@ describe('OwnerGuard', () => {
     expect(guard.canActivate(ctx)).toBe(true);
   });
 });
+
+function expect(value: any) {
+  return {
+    toThrow: () => {
+      try {
+        value();
+        throw new AssertionError('Expected function to throw');
+      } catch (error) {
+        if (error instanceof AssertionError) throw error;
+      }
+    },
+    toBe: (expected: any) => {
+      if (value !== expected) {
+        throw new AssertionError(`Expected ${value} to be ${expected}`);
+      }
+    },
+  };
+}
+
+class AssertionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssertionError';
+  }
+}

@@ -65,6 +65,11 @@ export class AuthController {
     throw new NotFoundException('User not found');
   }
 
+  @Post('refresh')
+  public async refresh(@Body() refreshToken: string) {
+    await this.authService.refreshToken(refreshToken);
+  }
+
   @Delete('account')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(204)
