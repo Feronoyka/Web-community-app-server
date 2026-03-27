@@ -49,13 +49,11 @@ export class ChatGateway implements OnGatewayConnection {
     client: Socket,
     data: { communityId: string; content: string },
   ) {
-    const message = await this.chatService.saveMessage(
-      client.data.userId as string,
-      data.content,
-      {
-        communityId: data.communityId,
-      },
-    );
+    const senderId = client.data.userId as string;
+
+    const message = await this.chatService.saveMessage(senderId, data.content, {
+      communityId: data.communityId,
+    });
 
     this.server.to(`community_${data.communityId}`).emit('newMessage', message);
   }

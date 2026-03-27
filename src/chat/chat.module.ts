@@ -14,12 +14,14 @@ import { AuthConfig } from '../config/auth.config';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const authConfig = config.get<AuthConfig>('auth');
+      useFactory: (configService: ConfigService) => {
+        const authConfig = configService.get<AuthConfig>('auth');
         return {
-          secret: authConfig?.jwt.secret,
+          secret: authConfig?.jwt.accessToken.secret,
           signOptions: {
-            expiresIn: parseInt(authConfig?.jwt.expiresIn as string),
+            expiresIn: parseInt(
+              authConfig?.jwt.accessToken.expiresIn as string,
+            ),
           },
         };
       },

@@ -10,6 +10,7 @@ import { UserService } from '../user.service';
 import { PasswordService } from '../password/password.service';
 import { User } from '../user.entity';
 import { AuthConfig } from 'src/config/auth.config';
+import type { StringValue } from 'ms';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    return this.generateAccessToken(user);
+    const accessToken = this.generateAccessToken(user);
+    const refreshToken = this.generateRefreshToken(user);
+
+    return { accessToken, refreshToken };
   }
 
   public async refreshToken(refreshToken: string) {
@@ -84,9 +88,16 @@ export class AuthService {
       domainName: user.domainName,
       email: user.email,
     };
-    const expiresIn = parseInt(authConfig?.jwt.accessToken.expiresIn as string);
+    if (!authConfig) {
+      throw new UnauthorizedException('Auth configuration is not set');
+    }
 
-    return this.jwtService.sign(payload, { expiresIn });
+    const { secret, expiresIn } = authConfig.jwt.accessToken;
+
+    return this.jwtService.sign(payload, {
+      secret,
+      expiresIn: this.toJwtExpiresIn(expiresIn),
+    });
   }
 
   private generateRefreshToken(user: User) {
@@ -96,10 +107,27 @@ export class AuthService {
       domainName: user.domainName,
       email: user.email,
     };
-    const expiresIn = parseInt(
-      authConfig?.jwt.refreshToken.expiresIn as string,
-    );
+    if (!authConfig) {
+      throw new UnauthorizedException('Auth configuration is not set');
+    }
 
-    return this.jwtService.sign(payload, { expiresIn });
+    const { secret, expiresIn } = authConfig.jwt.refreshToken;
+
+    return this.jwtService.sign(payload, {
+      secret,
+      expiresIn: this.toJwtExpiresIn(expiresIn),
+    });
+  }
+
+  private toJwtExpiresIn(expiresIn: string | number): number | StringValue {
+    if (typeof expiresIn === 'number') {
+      return expiresIn;
+    }
+
+    if (/^\d+$/.test(expiresIn)) {
+      return parseInt(expiresIn, 10);
+    }
+
+    return expiresIn as StringValue;
   }
 }

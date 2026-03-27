@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
   IsString,
+  IsOptional,
   Matches,
   MaxLength,
   MinLength,
@@ -23,31 +25,24 @@ export class CreateUserDto {
     message:
       'Domain must use letters/numbers, hyphens allowed but not at start/end',
   })
-  @Transform(({ value }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   domainName!: string; // domain name
 
-  @IsNotEmpty({
-    message: 'Please provide a username',
-  })
+  @IsOptional()
   @IsString()
   @MinLength(3)
   @MaxLength(20)
   @Matches(/^[a-zA-Z0-9]+$/, {
     message: 'Symbols are not valid',
   })
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  username!: string; // username
+  username?: string; // username
 
   @IsNotEmpty({
     message: 'Email is empty',
   })
   @IsEmail()
   @Transform(({ value }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   email!: string; // email
@@ -59,7 +54,6 @@ export class CreateUserDto {
     message:
       'Password must be at least 6 characters long and contain at least one letter and one number.',
   })
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   password!: string; // password
 }

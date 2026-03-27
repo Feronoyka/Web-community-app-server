@@ -4,7 +4,6 @@ import { UserController } from './user.controller';
 import { PasswordService } from './password/password.service';
 import { AuthService } from './auth/auth.service';
 import { AuthController } from './auth/auth.controller';
-// import { APP_GUARD } from '@nestjs/core';
 import { OwnerGuard } from './owner.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -22,9 +21,11 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: (config: ConfigService) => {
         const authConfig = config.get<AuthConfig>('auth');
         return {
-          secret: authConfig?.jwt.secret,
+          secret: authConfig?.jwt.accessToken.secret,
           signOptions: {
-            expiresIn: parseInt(authConfig?.jwt.expiresIn as string),
+            expiresIn: parseInt(
+              authConfig?.jwt.accessToken.expiresIn as string,
+            ),
           },
         };
       },

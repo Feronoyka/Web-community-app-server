@@ -12,20 +12,19 @@ export class ChatService {
     private conversationRepository: Repository<Conversation>,
   ) {}
 
-  async getOrCreateConversation(user1Id: string, user2Id: string) {
+  async getOrCreateConversation(senderId: string, receiverId: string) {
     let conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
-      .innerJoin('conversation.participants', 'user1')
-      .innerJoin('conversation.participants', 'user2')
-      .where('user1.id = :user1 AND user2.id = :user2', {
-        user1: user1Id,
-        user2: user2Id,
+      .innerJoin('conversation.participants', 'user')
+      .where('user.id = :senderUserId AND user.id = :receiverUserId', {
+        senderUserId: senderId,
+        receiverUserId: receiverId,
       })
       .getOne();
 
     if (!conversation) {
       conversation = this.conversationRepository.create({
-        participants: [{ id: user1Id }, { id: user2Id }],
+        participants: [{ id: senderId }, { id: receiverId }],
       });
       await this.conversationRepository.save(conversation);
     }

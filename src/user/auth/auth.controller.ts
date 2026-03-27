@@ -9,8 +9,11 @@ import {
   HttpStatus,
   NotFoundException,
   Post,
+  Req,
   Request,
+  Res,
   SerializeOptions,
+  UnauthorizedException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,11 +23,15 @@ import { CreateUserDto } from '../create-user.dto';
 import { LoginDto } from '../login.dto';
 import { LoginResponseDto } from '../login-response.dto';
 import { type AuthRequest } from './auth.request';
+import type { Request as ExpressRequest, Response } from 'express';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @SerializeOptions({ strategy: 'exposeAll' })
 export class AuthController {
+  private static readonly REFRESH_COOKIE_NAME = 'refreshToken';
+  private static readonly EXPIRES = 7 * 24 * 60 * 60 * 1000;
+
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService,
@@ -37,19 +44,36 @@ export class AuthController {
   }
 
   @Post('login')
-  public async login(@Body() loginDto: LoginDto) {
-    const accessToken = await this.authService.login(
+  public async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.login(
       loginDto.email,
       loginDto.password,
     );
+
+    response.cookie(AuthController.REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/auth',
+      maxAge: AuthController.EXPIRES,
+    });
 
     return new LoginResponseDto({ accessToken });
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public logout() {
+  public logout(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie(AuthController.REFRESH_COOKIE_NAME, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/auth',
+    });
+
     return { message: 'Logget out successfully' };
   }
 
@@ -66,8 +90,25 @@ export class AuthController {
   }
 
   @Post('refresh')
-  public async refresh(@Body() refreshToken: string) {
-    await this.authService.refreshToken(refreshToken);
+  public async refresh(
+    @Req() request: ExpressRequest,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const cookies = request.cookies as Record<string, string | undefined>;
+    const refreshToken = cookies?.[AuthController.REFRESH_COOKIE_NAME];
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
+
+    const tokens = await this.authService.refreshToken(refreshToken);
+    response.cookie(AuthController.REFRESH_COOKIE_NAME, tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/auth',
+    });
+
+    return new LoginResponseDto({ accessToken: tokens.accessToken });
   }
 
   @Delete('account')
@@ -77,3 +118,26 @@ export class AuthController {
     await this.authService.deleteUser(req.user.sub);
   }
 }
+
+/**
+Client sends email + password
+→ Server generates both tokens
+→ Server puts refreshToken in httpOnly cookie on the response
+→ Server returns { accessToken } in JSON body
+→ Browser automatically stores the cookie
+
+  When Access Token expiresIn
+  Client gets 401 Unauthorized response
+→ Client calls POST /auth/refresh
+→ Browser automatically sends the httpOnly cookie along with the request
+→ Server reads refreshToken from cookie (not from body)
+→ Server validates it, issues new both tokens
+→ New refreshToken goes back into cookie silently
+→ New accessToken returned in JSON body
+→ Client updates its stored accessToken and retries the original request
+
+Client calls DELETE /auth/logout
+→ Server clears the cookie
+→ Client discards the accessToken from memory
+→ Done
+ */

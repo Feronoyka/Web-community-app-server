@@ -32,7 +32,7 @@ export class Message {
   @Column({ nullable: true })
   communityId: string;
 
-  @ManyToOne(() => User, (user) => user.sentMessages, { nullable: true })
+  @ManyToOne(() => User, (user) => user.receivedMessages, { nullable: true })
   receiver: User;
 
   @Column({ nullable: true })

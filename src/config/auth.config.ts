@@ -19,8 +19,8 @@ export const authConfig = registerAs(
   (): AuthConfig => ({
     jwt: {
       accessToken: {
-        secret: process.env.JWT_TOKEN as string,
-        expiresIn: process.env.JWT_EXPIRES_IN ?? '60m',
+        secret: process.env.ACCESS_TOKEN_SECRET as string,
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN ?? '60m',
       },
 
       refreshToken: {

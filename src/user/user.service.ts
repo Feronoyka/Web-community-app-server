@@ -18,9 +18,11 @@ export class UserService {
     const hashedPassword = await this.passwordService.hash(
       createUserDto.password,
     );
+    const username = createUserDto.username ?? createUserDto.domainName;
 
     const user = this.userRepository.create({
       ...createUserDto,
+      username,
       password: hashedPassword,
     });
 
