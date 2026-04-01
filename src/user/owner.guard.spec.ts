@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ExecutionContext } from '@nestjs/common';
-import { OwnerGuard } from './owner.guard';
+import { OwnerGuard } from '../guards/owner.guard';
 import { describe, beforeEach, it } from 'node:test';
 
 describe('OwnerGuard', () => {

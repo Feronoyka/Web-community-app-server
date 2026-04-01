@@ -18,6 +18,9 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ nullable: true })
+  avatarUrl?: string;
+
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
   domainName!: string;
 

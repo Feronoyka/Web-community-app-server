@@ -1,5 +1,5 @@
 import { IsOptional, IsString, MaxLength } from 'class-validator';
-import { Pronouns } from './enum/pronouns.enum';
+import { Pronouns } from '../enum/pronouns.enum';
 
 export class UpdateUserDto {
   @IsOptional()

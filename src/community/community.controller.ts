@@ -13,14 +13,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommunityService } from './community.service';
-import { CreateCommunityDto } from './create-community.dto';
+import { CreateCommunityDto } from './dto/create-community.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { AuthRequest } from '../user/auth/auth.request';
-import { FindCommunityQueryParams } from './find-community-query.params';
+import { FindCommunityQueryParams } from './params/find-community-query.params';
 import { PaginationParams } from '../common/pagination.params';
 import { PaginationResponse } from '../common/pagination-response.params';
 import { Community } from './community.entity';
-import { UpdateCommunityDto } from './update-community.dto';
+import { UpdateCommunityDto } from './dto/update-community.dto';
 import { OptionalJwtAuthGuard } from '../guards/optional-jwt-auth.guard';
 
 @Controller('community')

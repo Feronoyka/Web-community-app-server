@@ -19,9 +19,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../create-user.dto';
-import { LoginDto } from '../login.dto';
-import { LoginResponseDto } from '../login-response.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { LoginDto } from '../dto/login.dto';
+import { LoginResponseDto } from '../dto/login-response.dto';
 import { type AuthRequest } from './auth.request';
 import type { Request as ExpressRequest, Response } from 'express';
 

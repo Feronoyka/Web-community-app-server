@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from './../create-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
 import { UserService } from '../user.service';
 import { PasswordService } from '../password/password.service';
 import { User } from '../user.entity';

@@ -15,6 +15,9 @@ export class Community {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: true })
+  backgroundUrl?: string;
+
   @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
   name: string;
 
