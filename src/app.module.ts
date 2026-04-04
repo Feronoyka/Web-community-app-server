@@ -1,4 +1,4 @@
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -29,8 +29,7 @@ import { Conversation } from './chat/entities/conversation.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: TypedConfigService) => ({
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        ...configService.get('database'),
+        ...configService.get<TypeOrmModuleOptions>('database'),
         entities: [User, Community, Message, Conversation],
       }),
     }),

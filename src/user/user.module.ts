@@ -18,8 +18,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const authConfig = config.get<AuthConfig>('auth');
+      useFactory: (configService: ConfigService) => {
+        const authConfig = configService.get<AuthConfig>('auth');
         return {
           secret: authConfig?.jwt.accessToken.secret,
           signOptions: {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
@@ -11,49 +10,47 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsNotEmpty({
-    message: 'Domain name should not be empty',
-  })
+  @IsNotEmpty({ message: 'Domain name should not be empty' })
   @IsString()
-  @MinLength(6, {
-    message: 'Domain name should be at least 6 characters long',
+  @MinLength(6, { message: 'Domain name should be at least 6 characters long' })
+  @MaxLength(16, { message: 'Domain name should not exceed 16 characters' })
+  @Matches(/^[A-Za-z0-9]+$/, {
+    message: 'Domain name can only contain letters and numbers',
   })
-  @MaxLength(16, {
-    message: 'Domain name should not exceed 16 characters',
-  })
-  @Matches(/^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])$/, {
-    message:
-      'Domain must use letters/numbers, hyphens allowed but not at start/end',
-  })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  domainName!: string; // domain name
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  domainName!: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(3)
+  @MinLength(3, {
+    message: 'Username must be at least 3 characters long',
+  })
   @MaxLength(20)
-  @Matches(/^[a-zA-Z0-9]+$/, {
-    message: 'Symbols are not valid',
+  @Matches(/^[a-zA-Z0-9_-]+$/, {
+    message: 'Username can only contain letters, numbers, _ and -',
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  username?: string; // username
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  username?: string;
 
-  @IsNotEmpty({
-    message: 'Email is empty',
-  })
+  @IsNotEmpty({ message: 'Email is empty' })
   @IsEmail()
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
-  email!: string; // email
+  email!: string;
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/, {
-    message:
-      'Password must be at least 6 characters long and contain at least one letter and one number.',
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]+$/, {
+    message: 'Password must contain at least one letter and one number',
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  password!: string; // password
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  password!: string;
 }

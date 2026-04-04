@@ -1,22 +1,36 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityService } from './community.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Community } from './community.entity';
 import { User } from '../user/user.entity';
 
+interface CommunityRepoType {
+  findOne: () => void;
+  findOneBy: () => void;
+  create: () => void;
+  save: () => void;
+  manager: {
+    transaction: () => void;
+  };
+  createQueryBuilder: () => void;
+}
+
+interface UserRepoType {
+  findOne: () => void;
+  findOneBy: () => void;
+  createQueryBuilder: () => void;
+}
+
 describe('CommunityService', () => {
   let service: CommunityService;
-  let communityRepo: any;
-  let userRepo: any;
+  let communityRepo: CommunityRepoType;
+  let userRepo: UserRepoType;
 
   beforeEach(async () => {
     communityRepo = {
       findOne: jest.fn(),
       findOneBy: jest.fn(),
-      create: jest.fn().mockImplementation((community) => community),
+      create: jest.fn().mockImplementation((community: Community) => community),
       save: jest.fn(),
       manager: { transaction: jest.fn() },
       createQueryBuilder: jest.fn(),
@@ -49,8 +63,7 @@ describe('CommunityService', () => {
       name: 'c',
       description: 'd',
       followerCount: 0,
-    } as any;
-    // @ts-expect-ignore
+    } as Community;
     (communityRepo.createQueryBuilder as jest.Mock).mockReturnValueOnce({
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -61,7 +74,6 @@ describe('CommunityService', () => {
     });
 
     // user followed set
-    // @ts-expect-ignore
     (userRepo.createQueryBuilder as jest.Mock).mockReturnValueOnce({
       leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -70,7 +82,6 @@ describe('CommunityService', () => {
     });
 
     // members preview
-    // @ts-expect-ignore
     (userRepo.createQueryBuilder as jest.Mock).mockReturnValueOnce({
       innerJoin: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),

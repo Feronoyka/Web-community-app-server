@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   OnGatewayConnection,
   SubscribeMessage,
@@ -8,9 +5,25 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
-import { Socket, Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { JwtService } from '@nestjs/jwt';
+
+type SocketData = {
+  userId?: string;
+};
+
+type AuthedSocket = Socket<any, any, any, SocketData> & {
+  handshake: Socket['handshake'] & {
+    auth: {
+      token?: string;
+    };
+  };
+};
+
+type JwtPayload = {
+  sub: string;
+};
 
 @WebSocketGateway({
   cors: '*',
@@ -25,13 +38,18 @@ export class ChatGateway implements OnGatewayConnection {
     private readonly jwtService: JwtService,
   ) {}
 
-  async handleConnection(client: Socket) {
+  async handleConnection(client: AuthedSocket) {
     try {
-      const token: string = client.handshake.auth.token?.split(' ')[1];
-      const payload = this.jwtService.verify(token);
+      const token = client.handshake.auth.token?.split(' ')[1];
+      if (!token) {
+        client.disconnect();
+        return;
+      }
+
+      const payload = this.jwtService.verify<JwtPayload>(token);
       client.data.userId = payload.sub;
 
-      await client.join(client.data.userId as string);
+      await client.join(payload.sub);
       console.log(`Connected: ${client.data.userId}`);
     } catch (err) {
       console.log(err, 'Diconnected');
@@ -46,10 +64,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('messageToCommunity')
   async handleMessageToCommunity(
-    client: Socket,
+    client: Socket<any, any, any, SocketData>,
     data: { communityId: string; content: string },
   ) {
-    const senderId = client.data.userId as string;
+    const senderId = client.data.userId;
+    if (!senderId) return;
 
     const message = await this.chatService.saveMessage(senderId, data.content, {
       communityId: data.communityId,
@@ -60,10 +79,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('messageToPrivate')
   async handleMessageToPrivate(
-    client: Socket,
+    client: Socket<any, any, any, SocketData>,
     data: { receiverId: string; content: string },
   ) {
-    const senderId = client.data.userId as string;
+    const senderId = client.data.userId;
+    if (!senderId) return;
 
     const conversation = await this.chatService.getOrCreateConversation(
       senderId,

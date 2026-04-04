@@ -52,6 +52,11 @@ export class CommunityController {
       filter,
       pagination,
     );
+
+    if (!communities) {
+      throw new NotFoundException('There is no communities');
+    }
+
     return {
       data: communities,
       meta: {

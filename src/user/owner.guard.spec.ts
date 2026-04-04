@@ -1,9 +1,17 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { OwnerGuard } from '../guards/owner.guard';
-import { describe, beforeEach, it } from 'node:test';
+
+type RequestType = {
+  user?: {
+    sub?: string;
+  };
+  params?: {
+    id?: string;
+  };
+  body?: {
+    id?: string;
+  };
+};
 
 describe('OwnerGuard', () => {
   let guard: OwnerGuard;
@@ -12,7 +20,7 @@ describe('OwnerGuard', () => {
     guard = new OwnerGuard();
   });
 
-  function makeCtx(req: any): ExecutionContext {
+  function makeCtx(req: RequestType): ExecutionContext {
     return {
       switchToHttp: () => ({ getRequest: () => req }),
     } as unknown as ExecutionContext;
@@ -20,17 +28,19 @@ describe('OwnerGuard', () => {
 
   it('throws Unauthorized when no user.sub', () => {
     const ctx = makeCtx({});
-    expect(() => guard.canActivate(ctx)).toThrow();
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
   });
 
   it('throws Forbidden when no target id', () => {
     const ctx = makeCtx({ user: { sub: '1' } });
-    expect(() => guard.canActivate(ctx)).toThrow();
+    expect(() => guard.canActivate(ctx)).toThrow('Missing resource identifier');
   });
 
   it('throws Forbidden when sub != target', () => {
     const ctx = makeCtx({ user: { sub: '1' }, params: { id: '2' } });
-    expect(() => guard.canActivate(ctx)).toThrow();
+    expect(() => guard.canActivate(ctx)).toThrow(
+      'Only owner can perform this action',
+    );
   });
 
   it('returns true when owner', () => {
@@ -38,28 +48,3 @@ describe('OwnerGuard', () => {
     expect(guard.canActivate(ctx)).toBe(true);
   });
 });
-
-function expect(value: any) {
-  return {
-    toThrow: () => {
-      try {
-        value();
-        throw new AssertionError('Expected function to throw');
-      } catch (error) {
-        if (error instanceof AssertionError) throw error;
-      }
-    },
-    toBe: (expected: any) => {
-      if (value !== expected) {
-        throw new AssertionError(`Expected ${value} to be ${expected}`);
-      }
-    },
-  };
-}
-
-class AssertionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AssertionError';
-  }
-}
