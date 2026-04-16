@@ -5,10 +5,13 @@ export class UserResponseDto {
   id!: string;
 
   @Expose()
-  username!: string;
+  avatarUrl?: string;
 
   @Expose()
-  domainName!: string;
+  nickname!: string;
+
+  @Expose()
+  username!: string;
 
   @Expose()
   pronouns!: string | null;

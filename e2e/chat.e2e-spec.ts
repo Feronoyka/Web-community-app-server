@@ -46,7 +46,7 @@ describe('ChatGateway (e2e)', () => {
     console.log(`First user token: ${firstUsertoken}`);
 
     const secondUser = {
-      domainName: 'albertfgfd',
+      nickname: 'albertfgfd',
       username: 'Albert',
       email: 'test@example.com',
       password: 'Test1234',

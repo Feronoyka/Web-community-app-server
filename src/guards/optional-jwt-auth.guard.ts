@@ -4,7 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 type JwtUser = {
   sub: string;
   email: string;
-  domainName: string;
+  nickname: string;
 };
 
 // Let unauthorizated users view other's community but cannot follow

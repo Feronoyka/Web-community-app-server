@@ -9,7 +9,7 @@ export class LoginDto {
   )
   email!: string;
 
-  @IsNotEmpty({ message: 'Password should not be empty' })
+  @IsNotEmpty({ message: 'Password must not be empty' })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )

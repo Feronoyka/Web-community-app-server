@@ -89,7 +89,7 @@ describe('CommunityService', () => {
       getRawMany: jest
         .fn()
         .mockResolvedValueOnce([
-          { user_id: 'u1', user_username: 'u', user_domainName: 'd' },
+          { user_id: 'u1', user_username: 'u', user_nickname: 'd' },
         ]),
     });
   });

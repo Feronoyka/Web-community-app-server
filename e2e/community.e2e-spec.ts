@@ -122,7 +122,7 @@ describe('CommunityController (e2e) test', () => {
     const communityId = res.body.id;
 
     const anotherUser = {
-      domainName: 'anotherdomain',
+      nickname: 'anotherdomain',
       username: 'anotheruser',
       email: 'another@test.com',
       password: 'Password123',
@@ -155,7 +155,7 @@ describe('CommunityController (e2e) test', () => {
     const communityId = res.body.id;
 
     const anotherUser = {
-      domainName: 'anotherdomain',
+      nickname: 'anotherdomain',
       username: 'anotheruser',
       email: 'another@test.com',
       password: 'Password123',
@@ -193,7 +193,7 @@ describe('CommunityController (e2e) test', () => {
     const communityId = res.body.id;
 
     const anotherUser = {
-      domainName: 'anotherdomain',
+      nickname: 'anotherdomain',
       username: 'anotheruser',
       email: 'another@test.com',
       password: 'Password123',

@@ -7,6 +7,7 @@ import {
   Patch,
   Query,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { OwnerGuard } from '../guards/owner.guard';
@@ -17,7 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUserQueryParams } from './params/find-user.query.param';
 import { PaginationResponse } from 'src/common/pagination-response.params';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -51,6 +52,12 @@ export class UserController {
     if (!updatedUser) throw new NotFoundException('User not found');
 
     return updatedUser;
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), OwnerGuard)
+  public async delete(@Param('id') id: string): Promise<void> {
+    await this.userService.deleteUser(id);
   }
 
   // Helper function

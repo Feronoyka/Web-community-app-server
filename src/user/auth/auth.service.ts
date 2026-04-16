@@ -58,7 +58,7 @@ export class AuthService {
 
     const payload = this.jwtService.verify<{
       sub: string;
-      domainName: string;
+      nickname: string;
       email: string;
     }>(refreshToken, { secret: authConfig.jwt.refreshToken.secret });
 
@@ -85,7 +85,7 @@ export class AuthService {
     const authConfig = this.configService.get<AuthConfig>('auth');
     const payload = {
       sub: user.id,
-      domainName: user.domainName,
+      nickname: user.nickname,
       email: user.email,
     };
     if (!authConfig) {
@@ -104,7 +104,7 @@ export class AuthService {
     const authConfig = this.configService.get<AuthConfig>('auth');
     const payload = {
       sub: user.id,
-      domainName: user.domainName,
+      nickname: user.nickname,
       email: user.email,
     };
     if (!authConfig) {

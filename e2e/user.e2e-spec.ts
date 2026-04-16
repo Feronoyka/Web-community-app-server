@@ -30,17 +30,17 @@ describe('UserController (e2e)', () => {
       .send(testUser);
 
     return await request(testSetup.app.getHttpServer())
-      .get('/user')
+      .get('/users')
       .expect(200);
   });
 
-  it('Get the specific user with search successfully - GET /user?search=username OR domainName', async () => {
+  it('Get the specific user with search successfully - GET /user?search=username OR nickname', async () => {
     await request(testSetup.app.getHttpServer())
       .post('/auth/register')
       .send(testUser);
 
     return await request(testSetup.app.getHttpServer())
-      .get('/user?search=alish')
+      .get('/users?search=alish')
       .expect(200);
   });
 
@@ -52,7 +52,7 @@ describe('UserController (e2e)', () => {
     const userId = res.body.id;
 
     return await request(testSetup.app.getHttpServer())
-      .get(`/user/${userId}`)
+      .get(`/users/${userId}`)
       .expect(200);
   });
 
@@ -62,7 +62,7 @@ describe('UserController (e2e)', () => {
       .send(testUser);
 
     return await request(testSetup.app.getHttpServer())
-      .get('/user/43f18951-2c9b-4e31-b51d-557dc8611ff4')
+      .get('/users/43f18951-2c9b-4e31-b51d-557dc8611ff4')
       .expect(404);
   });
 
@@ -74,7 +74,7 @@ describe('UserController (e2e)', () => {
     const userId = res.body.id;
 
     return await request(testSetup.app.getHttpServer()).patch(
-      `/user/${userId}`,
+      `/users/${userId}`,
     );
   });
 });

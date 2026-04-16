@@ -7,7 +7,7 @@ import { AuthConfig } from 'src/config/auth.config';
 interface PayloadType {
   sub: string;
   email: string;
-  domainName: string;
+  nickname: string;
 }
 
 @Injectable()
@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       sub: payload.sub,
       email: payload.email,
-      domainName: payload.domainName,
+      nickname: payload.nickname,
     };
   }
 }

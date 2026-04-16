@@ -18,7 +18,7 @@ export class UserService {
     const hashedPassword = await this.passwordService.hash(
       createUserDto.password,
     );
-    const username = createUserDto.username ?? createUserDto.domainName;
+    const username = createUserDto.username ?? createUserDto.nickname;
 
     const user = this.userRepository.create({
       ...createUserDto,
@@ -39,7 +39,7 @@ export class UserService {
 
     if (filter.search) {
       query.where(
-        'user.username ILIKE :search OR user.domainName ILIKE :search',
+        'user.username ILIKE :search OR user.nickname ILIKE :search',
         { search: `%${filter.search}%` },
       );
     }
@@ -53,8 +53,9 @@ export class UserService {
     if (!user) return null;
     return {
       id: user.id,
+      avatarUrl: user.avatarUrl,
       username: user.username,
-      domainName: user.domainName,
+      nickname: user.nickname,
       pronouns: user?.pronouns,
       description: user?.description,
     };
@@ -68,11 +69,14 @@ export class UserService {
   // For editing profile
   public async updateById(
     id: string,
-    updateUserDto: Partial<Pick<User, 'username' | 'pronouns' | 'description'>>,
+    updateUserDto: Partial<
+      Pick<User, 'avatarUrl' | 'username' | 'pronouns' | 'description'>
+    >,
   ): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) return null;
 
+    user.avatarUrl = updateUserDto.avatarUrl ?? user.avatarUrl;
     user.username = updateUserDto.username ?? user.username;
     user.pronouns = updateUserDto.pronouns ?? user.pronouns;
     user.description = updateUserDto.description ?? user.description;
@@ -80,8 +84,9 @@ export class UserService {
     const saved = await this.userRepository.save(user);
     return {
       id: saved.id,
+      avatarUrl: saved.avatarUrl,
       username: saved.username,
-      domainName: saved.domainName,
+      nickname: saved.nickname,
       pronouns: saved.pronouns,
       description: saved.description,
     };
@@ -101,9 +106,9 @@ export class UserService {
       .getOne();
   }
 
-  // For searching the user by domainName
-  public async findOneByDomainName(domainName: string): Promise<User | null> {
-    return await this.userRepository.findOneBy({ domainName });
+  // For searching the user by nickname
+  public async findOneBynickname(nickname: string): Promise<User | null> {
+    return await this.userRepository.findOneBy({ nickname });
   }
 
   // For deleting account

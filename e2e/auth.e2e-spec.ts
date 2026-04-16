@@ -31,7 +31,7 @@ describe('AuthController (e2e)', () => {
       .expect(201)
       .expect((res) => {
         expect(res.body.email).toBe(testUser.email);
-        expect(res.body.domainName).toBe(testUser.domainName);
+        expect(res.body.nickname).toBe(testUser.nickname);
         expect(res.body).not.toHaveProperty('password');
       });
   });
@@ -82,7 +82,7 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.domainName).toBe(testUser.domainName);
+        expect(res.body.nickname).toBe(testUser.nickname);
         expect(res.body.username).toBe(testUser.username);
         expect(res.body.pronouns).toBeNull();
         expect(res.body.description).toBeNull();

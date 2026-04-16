@@ -1,0 +1,9 @@
+@baseUrl = http://localhost:3000
+
+GET {{baseUrl}}/users
+
+###
+GET {{baseUrl}}/users/b742bfa7-4aa7-44fa-9762-ea2e804aa4dc
+
+###
+DELETE {{baseUrl}}/users/b742bfa7-4aa7-44fa-9762-ea2e804aa4dc

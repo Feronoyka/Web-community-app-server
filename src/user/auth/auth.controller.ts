@@ -30,7 +30,7 @@ import type { Request as ExpressRequest, Response } from 'express';
 @SerializeOptions({ strategy: 'exposeAll' })
 export class AuthController {
   private static readonly REFRESH_COOKIE_NAME = 'refreshToken';
-  private static readonly EXPIRES = 7 * 24 * 60 * 60 * 1000;
+  private static readonly EXPIRES = 7 * 24 * 60 * 60 * 1000; // 7 days
 
   constructor(
     private readonly userService: UserService,
@@ -61,7 +61,7 @@ export class AuthController {
       maxAge: AuthController.EXPIRES,
     });
 
-    return new LoginResponseDto({ accessToken });
+    return new LoginResponseDto({ accessToken, refreshToken });
   }
 
   @Post('logout')
@@ -108,7 +108,10 @@ export class AuthController {
       path: '/auth',
     });
 
-    return new LoginResponseDto({ accessToken: tokens.accessToken });
+    return new LoginResponseDto({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
   }
 
   @Delete('account')

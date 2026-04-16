@@ -22,7 +22,7 @@ export class User {
   avatarUrl?: string;
 
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
-  domainName!: string;
+  nickname!: string;
 
   @Column({ type: 'varchar', length: 100, select: false })
   @Exclude()

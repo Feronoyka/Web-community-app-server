@@ -11,7 +11,7 @@ const generateRandomName = (length = 6) => {
 };
 
 export const generateUser = () => ({
-  domainName: generateRandomName(),
+  nickname: generateRandomName(),
   username: 'Alisher',
   email: `user${Date.now()}@test.com`,
   password: 'Password123',

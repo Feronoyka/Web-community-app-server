@@ -1,5 +1,5 @@
 export interface TestUser {
-  domainName: string;
+  nickname: string;
   username: string;
   email: string;
   password: string;
