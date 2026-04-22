@@ -13,7 +13,8 @@ import { generateCommunity } from './utils/generate-community';
 
 describe('ChatGateway (e2e)', () => {
   let testSetup: TestSetup;
-  let testUser: TestUser;
+  let firstTestUser: TestUser;
+  let secondTestUser: TestUser;
   let testCommunity: TestCommunity;
   let clientSocket: Socket;
   let secondClientSocket: Socket;
@@ -24,44 +25,38 @@ describe('ChatGateway (e2e)', () => {
   let server: any;
   let port: number;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     testSetup = await TestSetup.create(AppModule);
-    testUser = generateUser();
+    firstTestUser = generateUser();
+    secondTestUser = generateUser();
     testCommunity = generateCommunity();
 
     await request(testSetup.app.getHttpServer())
       .post('/auth/register')
-      .send(testUser)
+      .send(firstTestUser)
       .expect(201);
 
     const firstUserRes = await request(testSetup.app.getHttpServer())
       .post('/auth/login')
       .send({
-        email: testUser.email,
-        password: testUser.password,
+        email: firstTestUser.email,
+        password: firstTestUser.password,
       })
       .expect(201);
 
     firstUsertoken = firstUserRes.body.accessToken;
     console.log(`First user token: ${firstUsertoken}`);
 
-    const secondUser = {
-      nickname: 'albertfgfd',
-      username: 'Albert',
-      email: 'test@example.com',
-      password: 'Test1234',
-    };
-
     const secondUserRes = await request(testSetup.app.getHttpServer())
       .post('/auth/register')
-      .send(secondUser)
+      .send(secondTestUser)
       .expect(201);
 
     const secondUserLoginRes = await request(testSetup.app.getHttpServer())
       .post('/auth/login')
       .send({
-        email: secondUser.email,
-        password: secondUser.password,
+        email: secondTestUser.email,
+        password: secondTestUser.password,
       })
       .expect(201);
 
@@ -69,7 +64,7 @@ describe('ChatGateway (e2e)', () => {
     userId = secondUserRes.body.id;
 
     const community = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${firstUsertoken}`)
       .send(testCommunity)
       .expect(201);
@@ -120,7 +115,7 @@ describe('ChatGateway (e2e)', () => {
 
   it('should send and receive private messages', async () => {
     clientSocket = io(`http://localhost:${port}`, {
-      auth: { token: `Bearer ${firstUsertoken}` },
+      auth: { jwt: { accessToken: `Bearer ${firstUsertoken}` } },
     });
 
     secondClientSocket = io(`http://localhost:${port}`, {

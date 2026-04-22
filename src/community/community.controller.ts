@@ -23,7 +23,7 @@ import { Community } from './community.entity';
 import { UpdateCommunityDto } from './dto/update-community.dto';
 import { OptionalJwtAuthGuard } from '../guards/optional-jwt-auth.guard';
 
-@Controller('community')
+@Controller('communities')
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 

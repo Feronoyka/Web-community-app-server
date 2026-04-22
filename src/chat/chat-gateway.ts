@@ -31,7 +31,8 @@ type JwtPayload = {
   credentials: true,
 })
 export class ChatGateway implements OnGatewayConnection {
-  @WebSocketServer() server: Server;
+  @WebSocketServer()
+  server!: Server;
 
   constructor(
     private readonly chatService: ChatService,

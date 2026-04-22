@@ -42,9 +42,9 @@ describe('CommunityController (e2e) test', () => {
     await testSetup.teardown();
   });
 
-  it('Create the community successfully - POST /community', async () => {
+  it('Create the community successfully - POST /communities', async () => {
     return await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity)
       .expect(201)
@@ -54,33 +54,33 @@ describe('CommunityController (e2e) test', () => {
       });
   });
 
-  it('Get all communities - GET /community', async () => {
+  it('Get all communities - GET /communities', async () => {
     await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     return await request(testSetup.app.getHttpServer())
-      .get('/community')
+      .get('/communities')
       .expect(200);
   });
 
-  it('Get one community by id succesfully - GET /community/:id', async () => {
+  it('Get one community by id succesfully - GET /communities/:id', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
     return await request(testSetup.app.getHttpServer())
-      .get(`/community/${communityId}`)
+      .get(`/communities/${communityId}`)
       .expect(200);
   });
 
-  it('Change own community successfully- PATCH /community/:id', async () => {
+  it('Change own community successfully- PATCH /communities/:id', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
@@ -91,7 +91,7 @@ describe('CommunityController (e2e) test', () => {
     };
 
     const updatedRes = await request(testSetup.app.getHttpServer())
-      .patch(`/community/${communityId}`)
+      .patch(`/communities/${communityId}`)
       .set('Authorization', `Bearer ${token}`)
       .send(updateCommunity)
       .expect(200);
@@ -101,32 +101,34 @@ describe('CommunityController (e2e) test', () => {
 
   it("Should failure to changing other's community", async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
     return await request(testSetup.app.getHttpServer())
-      .patch(`/community/${communityId}`)
+      .patch(`/communities/${communityId}`)
       .set('Authorization', `Bearer xxx`)
       .expect(401);
   });
 
-  it('follow to community succesfully - POST /community/:id/follow', async () => {
+  it('follow to community succesfully - POST /communities/:id/follow', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
-    const anotherUser = {
-      nickname: 'anotherdomain',
-      username: 'anotheruser',
-      email: 'another@test.com',
-      password: 'Password123',
-    };
+    // const anotherUser = {
+    //   nickname: 'ddjaklfljsadffasd',
+    //   username: 'Alisher',
+    //   email: 'another123@test.com',
+    //   password: 'Password123$',
+    // };
+
+    const anotherUser = generateUser();
 
     await request(testSetup.app.getHttpServer())
       .post('/auth/register')
@@ -141,25 +143,27 @@ describe('CommunityController (e2e) test', () => {
     const anotherToken = loginRes.body.accessToken;
 
     return await request(testSetup.app.getHttpServer())
-      .post(`/community/${communityId}/follow`)
+      .post(`/communities/${communityId}/follow`)
       .set('Authorization', `Bearer ${anotherToken}`)
       .expect(201);
   });
 
   it('Should fail when following again to community', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
-    const anotherUser = {
-      nickname: 'anotherdomain',
-      username: 'anotheruser',
-      email: 'another@test.com',
-      password: 'Password123',
-    };
+    // const anotherUser = {
+    //   nickname: 'asjdlfjadsaf',
+    //   username: 'anotheruser',
+    //   email: 'another2234@test.com',
+    //   password: 'Password123',
+    // };
+
+    const anotherUser = generateUser();
 
     await request(testSetup.app.getHttpServer())
       .post('/auth/register')
@@ -174,30 +178,32 @@ describe('CommunityController (e2e) test', () => {
     const anotherToken = loginRes.body.accessToken;
 
     await request(testSetup.app.getHttpServer())
-      .post(`/community/${communityId}/follow`)
+      .post(`/communities/${communityId}/follow`)
       .set('Authorization', `Bearer ${anotherToken}`)
       .expect(201);
 
     return await request(testSetup.app.getHttpServer())
-      .post(`/community/${communityId}/follow`)
+      .post(`/communities/${communityId}/follow`)
       .set('Authorization', `Bearer ${anotherToken}`)
       .expect(409);
   });
 
-  it('unfollow to community successfully - DELETE /community/:id/unfollow', async () => {
+  it('unfollow to community successfully - DELETE /communities/:id/unfollow', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
-    const anotherUser = {
-      nickname: 'anotherdomain',
-      username: 'anotheruser',
-      email: 'another@test.com',
-      password: 'Password123',
-    };
+    // const anotherUser = {
+    //   nickname: 'anfdajskhfk',
+    //   username: 'anotheruser',
+    //   email: 'another234233@test.com',
+    //   password: 'Password123',
+    // };
+
+    const anotherUser = generateUser();
 
     await request(testSetup.app.getHttpServer())
       .post('/auth/register')
@@ -212,26 +218,26 @@ describe('CommunityController (e2e) test', () => {
     const anotherToken = loginRes.body.accessToken;
 
     await request(testSetup.app.getHttpServer())
-      .post(`/community/${communityId}/follow`)
+      .post(`/communities/${communityId}/follow`)
       .set('Authorization', `Bearer ${anotherToken}`)
       .expect(201);
 
     return await request(testSetup.app.getHttpServer())
-      .delete(`/community/${communityId}/unfollow`)
+      .delete(`/communities/${communityId}/unfollow`)
       .set('Authorization', `Bearer ${anotherToken}`)
       .expect(200);
   });
 
   it('Delete own community successfully - DELETE /community/:id', async () => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/community')
+      .post('/communities')
       .set('Authorization', `Bearer ${token}`)
       .send(testCommunity);
 
     const communityId = res.body.id;
 
     return await request(testSetup.app.getHttpServer())
-      .delete(`/community/${communityId}`)
+      .delete(`/communities/${communityId}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
   });
