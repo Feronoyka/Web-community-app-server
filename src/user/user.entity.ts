@@ -12,6 +12,7 @@ import { Exclude } from 'class-transformer';
 import { Community } from '../community/community.entity';
 import { Message } from '../chat/entities/message.entity';
 import { Conversation } from '../chat/entities/conversation.entity';
+import { Otp } from './services/otp/otp.entity';
 
 @Entity()
 export class User {
@@ -54,6 +55,12 @@ export class User {
 
   @ManyToMany(() => Conversation, (conversation) => conversation.participants)
   conversation!: Conversation[];
+
+  @OneToMany(() => Otp, (otp) => otp.user)
+  otps!: Otp[];
+
+  @Column('simple-array', { nullable: true, default: '' })
+  trustedDevices!: string[];
 
   @CreateDateColumn()
   @Exclude()

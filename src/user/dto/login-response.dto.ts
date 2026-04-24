@@ -6,8 +6,14 @@ export class LoginResponseDto {
   }
 
   @Expose()
-  accessToken!: string;
+  accessToken?: string;
 
   @Expose()
-  refreshToken!: string;
+  refreshToken?: string;
+
+  @Expose()
+  requires2FA?: boolean;
+
+  @Expose()
+  tempToken?: string;
 }

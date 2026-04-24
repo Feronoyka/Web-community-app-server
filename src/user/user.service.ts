@@ -3,7 +3,7 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PasswordService } from './password/password.service';
+import { PasswordService } from './services/password/password.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { FindCommunityQueryParams } from 'src/community/params/find-community-query.params';
 

@@ -12,6 +12,9 @@ import { appSchemaConfig } from './config/app-schema.config';
 import { Message } from './chat/entities/message.entity';
 import { ChatModule } from './chat/chat.module';
 import { Conversation } from './chat/entities/conversation.entity';
+import { MailModule } from './user/services/mail/mail.module';
+import { OtpModule } from './user/services/otp/otp.module';
+import { Otp } from './user/services/otp/otp.entity';
 
 @Module({
   imports: [
@@ -30,12 +33,14 @@ import { Conversation } from './chat/entities/conversation.entity';
       inject: [ConfigService],
       useFactory: (configService: TypedConfigService) => ({
         ...configService.get<TypeOrmModuleOptions>('database'),
-        entities: [User, Community, Message, Conversation],
+        entities: [User, Community, Message, Conversation, Otp],
       }),
     }),
     UserModule,
     CommunityModule,
     ChatModule,
+    MailModule,
+    OtpModule,
   ],
   providers: [
     {

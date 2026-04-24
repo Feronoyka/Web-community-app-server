@@ -15,7 +15,7 @@ import {
 import { CommunityService } from './community.service';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { AuthGuard } from '@nestjs/passport';
-import type { AuthRequest } from '../user/auth/auth.request';
+import type { AuthRequest } from '../user/services/auth/auth.request';
 import { FindCommunityQueryParams } from './params/find-community-query.params';
 import { PaginationParams } from '../common/pagination.params';
 import { PaginationResponse } from '../common/pagination-response.params';
