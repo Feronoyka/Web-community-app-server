@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -13,25 +12,61 @@ describe('CommunityController (e2e) test', () => {
   let testSetup: TestSetup;
   let testUser: TestUser;
   let testCommunity: TestCommunity;
-  let token: string;
+  let accessToken: string;
+
+  const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+  const register = (user: TestUser) =>
+    request(testSetup.app.getHttpServer()).post('/auth/register').send(user);
+
+  const registerAndLogin = async (user: TestUser) => {
+    await register(user).expect(201);
+
+    const agent = request.agent(testSetup.app.getHttpServer());
+
+    const loginRes = await agent
+      .post('/auth/login')
+      .send({ email: user.email, password: user.password })
+      .expect(201);
+
+    expect(loginRes.body.requires2FA).toBe(true);
+
+    const otp = testSetup.sentOtps.get(user.email);
+    expect(otp).toBeDefined();
+
+    const verifyRes = await agent
+      .post('/auth/verify-2fa')
+      .send({ otp, trustDevice: false, purpose: '2fa' })
+      .expect(201);
+
+    expect(verifyRes.body.accessToken).toBeDefined();
+    return verifyRes.body.accessToken as string;
+  };
+
+  const createUserAndToken = async () => {
+    const user = generateUser();
+    const token = await registerAndLogin(user);
+    return { user, token };
+  };
+
+  const createCommunity = async (token: string, body: TestCommunity) => {
+    const res = await request(testSetup.app.getHttpServer())
+      .post('/communities')
+      .set(auth(token))
+      .send(body)
+      .expect(201);
+
+    return res.body as { id: string; name: string; description: string };
+  };
+
+  beforeAll(async () => {
+    testSetup = await TestSetup.create(AppModule);
+  });
 
   beforeEach(async () => {
-    testSetup = await TestSetup.create(AppModule);
     testUser = generateUser();
     testCommunity = generateCommunity();
-
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
-
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-
-    token = res.body.accessToken;
+    accessToken = await registerAndLogin(testUser);
   });
 
   afterEach(async () => {
@@ -43,202 +78,104 @@ describe('CommunityController (e2e) test', () => {
   });
 
   it('Create the community successfully - POST /communities', async () => {
-    return await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity)
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.name).toBeDefined();
-        expect(res.body.description).toBeDefined();
-      });
+    const created = await createCommunity(accessToken, testCommunity);
+    expect(created.id).toBeDefined();
+    expect(created.name).toBe(testCommunity.name);
+    expect(created.description).toBe(testCommunity.description);
   });
 
   it('Get all communities - GET /communities', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
+    await createCommunity(accessToken, testCommunity);
 
-    return await request(testSetup.app.getHttpServer())
+    const res = await request(testSetup.app.getHttpServer())
       .get('/communities')
       .expect(200);
+
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data.length).toBeGreaterThan(0);
   });
 
-  it('Get one community by id succesfully - GET /communities/:id', async () => {
+  it('Get one community by id - GET /communities/:id', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
+
     const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
-
-    return await request(testSetup.app.getHttpServer())
-      .get(`/communities/${communityId}`)
+      .get(`/communities/${created.id}`)
       .expect(200);
+
+    expect(res.body.id).toBe(created.id);
+    expect(res.body.name).toBe(created.name);
   });
 
-  it('Change own community successfully- PATCH /communities/:id', async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
+  it('Update own community - PATCH /communities/:id', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
 
-    const communityId = res.body.id;
-
-    const updateCommunity = {
-      description: 'This is updated community',
-    };
+    const patch = { description: 'This is updated community' };
 
     const updatedRes = await request(testSetup.app.getHttpServer())
-      .patch(`/communities/${communityId}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(updateCommunity)
+      .patch(`/communities/${created.id}`)
+      .set(auth(accessToken))
+      .send(patch)
       .expect(200);
 
-    expect(updatedRes.body.description).toBe(updateCommunity.description);
+    expect(updatedRes.body.id).toBe(created.id);
+    expect(updatedRes.body.description).toBe(patch.description);
   });
 
-  it("Should failure to changing other's community", async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
+  it('Should fail to update without valid token - PATCH /communities/:id', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
 
     return await request(testSetup.app.getHttpServer())
-      .patch(`/communities/${communityId}`)
-      .set('Authorization', `Bearer xxx`)
+      .patch(`/communities/${created.id}`)
+      .set('Authorization', 'Bearer xxx')
       .expect(401);
   });
 
-  it('follow to community succesfully - POST /communities/:id/follow', async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
-
-    // const anotherUser = {
-    //   nickname: 'ddjaklfljsadffasd',
-    //   username: 'Alisher',
-    //   email: 'another123@test.com',
-    //   password: 'Password123$',
-    // };
-
-    const anotherUser = generateUser();
-
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(anotherUser)
-      .expect(201);
-
-    const loginRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: anotherUser.email, password: anotherUser.password })
-      .expect(201);
-
-    const anotherToken = loginRes.body.accessToken;
+  it('Follow a community - POST /communities/:id/follow', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
+    const { token: anotherToken } = await createUserAndToken();
 
     return await request(testSetup.app.getHttpServer())
-      .post(`/communities/${communityId}/follow`)
-      .set('Authorization', `Bearer ${anotherToken}`)
+      .post(`/communities/${created.id}/follow`)
+      .set(auth(anotherToken))
       .expect(201);
   });
 
-  it('Should fail when following again to community', async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
-
-    // const anotherUser = {
-    //   nickname: 'asjdlfjadsaf',
-    //   username: 'anotheruser',
-    //   email: 'another2234@test.com',
-    //   password: 'Password123',
-    // };
-
-    const anotherUser = generateUser();
+  it('Should fail when following same community twice', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
+    const { token: anotherToken } = await createUserAndToken();
 
     await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(anotherUser)
-      .expect(201);
-
-    const loginRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: anotherUser.email, password: anotherUser.password })
-      .expect(201);
-
-    const anotherToken = loginRes.body.accessToken;
-
-    await request(testSetup.app.getHttpServer())
-      .post(`/communities/${communityId}/follow`)
-      .set('Authorization', `Bearer ${anotherToken}`)
+      .post(`/communities/${created.id}/follow`)
+      .set(auth(anotherToken))
       .expect(201);
 
     return await request(testSetup.app.getHttpServer())
-      .post(`/communities/${communityId}/follow`)
-      .set('Authorization', `Bearer ${anotherToken}`)
+      .post(`/communities/${created.id}/follow`)
+      .set(auth(anotherToken))
       .expect(409);
   });
 
-  it('unfollow to community successfully - DELETE /communities/:id/unfollow', async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
-
-    // const anotherUser = {
-    //   nickname: 'anfdajskhfk',
-    //   username: 'anotheruser',
-    //   email: 'another234233@test.com',
-    //   password: 'Password123',
-    // };
-
-    const anotherUser = generateUser();
+  it('Unfollow a community - DELETE /communities/:id/unfollow', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
+    const { token: anotherToken } = await createUserAndToken();
 
     await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(anotherUser)
-      .expect(201);
-
-    const loginRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: anotherUser.email, password: anotherUser.password })
-      .expect(201);
-
-    const anotherToken = loginRes.body.accessToken;
-
-    await request(testSetup.app.getHttpServer())
-      .post(`/communities/${communityId}/follow`)
-      .set('Authorization', `Bearer ${anotherToken}`)
+      .post(`/communities/${created.id}/follow`)
+      .set(auth(anotherToken))
       .expect(201);
 
     return await request(testSetup.app.getHttpServer())
-      .delete(`/communities/${communityId}/unfollow`)
-      .set('Authorization', `Bearer ${anotherToken}`)
+      .delete(`/communities/${created.id}/unfollow`)
+      .set(auth(anotherToken))
       .expect(200);
   });
 
-  it('Delete own community successfully - DELETE /community/:id', async () => {
-    const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
-      .set('Authorization', `Bearer ${token}`)
-      .send(testCommunity);
-
-    const communityId = res.body.id;
+  it('Delete own community - DELETE /communities/:id', async () => {
+    const created = await createCommunity(accessToken, testCommunity);
 
     return await request(testSetup.app.getHttpServer())
-      .delete(`/communities/${communityId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .delete(`/communities/${created.id}`)
+      .set(auth(accessToken))
       .expect(200);
   });
 });

@@ -16,7 +16,7 @@ import { User } from './user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUserQueryParams } from './params/find-user.query.param';
-import { PaginationResponse } from 'src/common/pagination-response.params';
+import { PaginationResponse } from '../common/pagination-response.params';
 
 @Controller('users')
 export class UserController {

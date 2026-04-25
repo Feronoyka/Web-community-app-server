@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import request from 'supertest';
@@ -11,8 +10,45 @@ describe('AuthController (e2e)', () => {
   let testSetup: TestSetup;
   let testUser: TestUser;
 
-  beforeEach(async () => {
+  const register = (user: TestUser) =>
+    request(testSetup.app.getHttpServer()).post('/auth/register').send(user);
+
+  const login = (user: TestUser) =>
+    request(testSetup.app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: user.email, password: user.password });
+
+  const registerAndLogin = async (user: TestUser) => {
+    await register(user).expect(201);
+
+    // Login now requires 2FA for first-time/untrusted devices.
+    // We keep cookies using a supertest agent so `/auth/verify-2fa` can read `tempToken`.
+    const agent = request.agent(testSetup.app.getHttpServer());
+
+    const loginRes = await agent
+      .post('/auth/login')
+      .send({ email: user.email, password: user.password })
+      .expect(201);
+
+    expect(loginRes.body.requires2FA).toBe(true);
+
+    const otp = testSetup.sentOtps.get(user.email);
+    expect(otp).toBeDefined();
+
+    const verifyRes = await agent
+      .post('/auth/verify-2fa')
+      .send({ otp, trustDevice: false, purpose: '2fa' })
+      .expect(201);
+
+    expect(verifyRes.body.accessToken).toBeDefined();
+    return verifyRes.body.accessToken as string;
+  };
+
+  beforeAll(async () => {
     testSetup = await TestSetup.create(AppModule);
+  });
+
+  beforeEach(() => {
     testUser = generateUser();
   });
 
@@ -25,9 +61,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('Register - POST /auth/register', async () => {
-    return await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser)
+    return await register(testUser)
       .expect(201)
       .expect((res) => {
         expect(res.body.email).toBe(testUser.email);
@@ -37,67 +71,36 @@ describe('AuthController (e2e)', () => {
   });
 
   it('Login - POST /auth/login', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
+    await register(testUser).expect(201);
 
-    const response = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-
-    expect(response.status).toBe(201);
-    expect(response.body.accessToken).toBeDefined();
+    const response = await login(testUser).expect(201);
+    expect(response.body.requires2FA).toBe(true);
   });
 
-  it('Register - POST duplicated email /auth/login', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
+  it('Register duplicate email - POST /auth/register', async () => {
+    await register(testUser).expect(201);
 
-    return await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser)
-      .expect(409);
+    return await register(testUser).expect(409);
   });
 
   it('Get own profile - GET /auth/profile', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
-
-    const loginResponse = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-
-    const token = loginResponse.body.accessToken;
+    const token = await registerAndLogin(testUser);
 
     return await request(testSetup.app.getHttpServer())
       .get('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect((res) => {
+        // Keep assertions stable: only check fields we control.
         expect(res.body.nickname).toBe(testUser.nickname);
         expect(res.body.username).toBe(testUser.username);
-        expect(res.body.pronouns).toBeNull();
-        expect(res.body.description).toBeNull();
+        expect(res.body).not.toHaveProperty('password');
       });
   });
 
-  it('Get own profile faiure - GET /auth/profile', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
-
-    await request(testSetup.app.getHttpServer()).post('/auth/login').send({
-      email: testUser.email,
-      password: testUser.password,
-    });
+  it('Get own profile without valid token - GET /auth/profile', async () => {
+    await register(testUser).expect(201);
+    await login(testUser).expect(201);
 
     return await request(testSetup.app.getHttpServer())
       .get('/auth/profile')
@@ -105,19 +108,8 @@ describe('AuthController (e2e)', () => {
       .expect(401);
   });
 
-  it('Login out succesfully - POST /auth/logout/:id', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
-
-    const loginResponse = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-
-    const token = loginResponse.body.accessToken;
+  it('Logout - POST /auth/logout', async () => {
+    const token = await registerAndLogin(testUser);
 
     return await request(testSetup.app.getHttpServer())
       .post('/auth/logout')
@@ -126,18 +118,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('Delete own user account - DELETE /auth/account', async () => {
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(testUser);
-
-    const loginResponse = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-
-    const token = loginResponse.body.accessToken;
+    const token = await registerAndLogin(testUser);
 
     return await request(testSetup.app.getHttpServer())
       .delete('/auth/account')

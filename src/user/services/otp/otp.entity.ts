@@ -1,4 +1,4 @@
-import { User } from 'src/user/user.entity';
+import { User } from '../../user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { OtpPurpose } from 'src/user/enum/otpPurpose.enum';
+import { OtpPurpose } from '../../enum/otpPurpose.enum';
 
 @Entity()
 export class Otp {

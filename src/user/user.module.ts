@@ -9,12 +9,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthConfig } from 'src/config/auth.config';
+import { AuthConfig } from '../config/auth.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { OtpService } from './services/otp/otp.service';
 import { MailService } from './services/mail/mail.service';
 import { Otp } from './services/otp/otp.entity';
-import { ResetTokenGuard } from 'src/guards/reset-token.guard';
+import { ResetTokenGuard } from '../guards/reset-token.guard';
 
 @Module({
   imports: [

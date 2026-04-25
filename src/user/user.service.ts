@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PasswordService } from './services/password/password.service';
 import { UserResponseDto } from './dto/user-response.dto';
-import { FindCommunityQueryParams } from 'src/community/params/find-community-query.params';
+import { FindCommunityQueryParams } from '../community/params/find-community-query.params';
 
 @Injectable()
 export class UserService {

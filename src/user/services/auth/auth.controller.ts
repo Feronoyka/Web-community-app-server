@@ -25,11 +25,11 @@ import { LoginResponseDto } from '../../dto/login-response.dto';
 import { type AuthRequest } from './auth.request';
 import type { Request as ExpressRequest, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { VerifyOtpDto } from 'src/user/dto/verify-otp.dto';
-import { VerifyOtpResponseDto } from 'src/user/dto/verify-otp-response.dto';
-import { ForgotPasswordDto } from 'src/user/dto/forgot-password.dto';
-import { ResetTokenGuard } from 'src/guards/reset-token.guard';
-import { ResetConfirmDto } from 'src/user/dto/reset-confirm.dto';
+import { VerifyOtpDto } from '../../dto/verify-otp.dto';
+import { VerifyOtpResponseDto } from '../../dto/verify-otp-response.dto';
+import { ForgotPasswordDto } from '../../dto/forgot-password.dto';
+import { ResetTokenGuard } from '../../../guards/reset-token.guard';
+import { ResetConfirmDto } from '../../dto/reset-confirm.dto';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)

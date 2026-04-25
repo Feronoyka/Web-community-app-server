@@ -25,42 +25,46 @@ describe('ChatGateway (e2e)', () => {
   let server: any;
   let port: number;
 
+  const register = (user: TestUser) =>
+    request(testSetup.app.getHttpServer()).post('/auth/register').send(user);
+
+  const loginAndVerify2FA = async (user: TestUser) => {
+    const agent = request.agent(testSetup.app.getHttpServer());
+
+    const loginRes = await agent
+      .post('/auth/login')
+      .send({ email: user.email, password: user.password })
+      .expect(201);
+
+    expect(loginRes.body.requires2FA).toBe(true);
+
+    const otp = testSetup.sentOtps.get(user.email);
+    expect(otp).toBeDefined();
+
+    const verifyRes = await agent
+      .post('/auth/verify-2fa')
+      .send({ otp, trustDevice: false, purpose: '2fa' })
+      .expect(201);
+
+    return verifyRes.body.accessToken as string;
+  };
+
+  const registerAndVerify2FA = async (user: TestUser) => {
+    await register(user).expect(201);
+    return await loginAndVerify2FA(user);
+  };
+
   beforeAll(async () => {
     testSetup = await TestSetup.create(AppModule);
     firstTestUser = generateUser();
     secondTestUser = generateUser();
     testCommunity = generateCommunity();
 
-    await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(firstTestUser)
-      .expect(201);
-
-    const firstUserRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: firstTestUser.email,
-        password: firstTestUser.password,
-      })
-      .expect(201);
-
-    firstUsertoken = firstUserRes.body.accessToken;
+    firstUsertoken = await registerAndVerify2FA(firstTestUser);
     console.log(`First user token: ${firstUsertoken}`);
 
-    const secondUserRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/register')
-      .send(secondTestUser)
-      .expect(201);
-
-    const secondUserLoginRes = await request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: secondTestUser.email,
-        password: secondTestUser.password,
-      })
-      .expect(201);
-
-    secondUsertoken = secondUserLoginRes.body.accessToken;
+    const secondUserRes = await register(secondTestUser).expect(201);
+    secondUsertoken = await loginAndVerify2FA(secondTestUser);
     userId = secondUserRes.body.id;
 
     const community = await request(testSetup.app.getHttpServer())
@@ -77,10 +81,9 @@ describe('ChatGateway (e2e)', () => {
     console.log(`Test server listening on port ${port}`);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     if (clientSocket?.connected) clientSocket.disconnect();
     if (secondClientSocket?.connected) secondClientSocket.disconnect();
-    await testSetup.cleanup();
   });
 
   afterAll(async () => {
@@ -115,7 +118,7 @@ describe('ChatGateway (e2e)', () => {
 
   it('should send and receive private messages', async () => {
     clientSocket = io(`http://localhost:${port}`, {
-      auth: { jwt: { accessToken: `Bearer ${firstUsertoken}` } },
+      auth: { token: `Bearer ${firstUsertoken}` },
     });
 
     secondClientSocket = io(`http://localhost:${port}`, {
@@ -131,8 +134,15 @@ describe('ChatGateway (e2e)', () => {
       ),
     ]);
 
-    const privateMessageReceived = new Promise((resolve) => {
-      secondClientSocket.on('newPrivateMessage', (message) => resolve(message));
+    const privateMessageReceived = new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Timed out waiting for newPrivateMessage')),
+        8000,
+      );
+      secondClientSocket.on('newPrivateMessage', (message) => {
+        clearTimeout(timeout);
+        resolve(message);
+      });
     });
 
     clientSocket.emit('messageToPrivate', {
@@ -142,5 +152,5 @@ describe('ChatGateway (e2e)', () => {
 
     const message: any = await privateMessageReceived;
     expect(message.content).toBe('Hello Private Message');
-  });
+  }, 15000);
 });

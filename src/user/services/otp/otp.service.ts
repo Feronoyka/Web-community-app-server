@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Otp } from './otp.entity';
-import { OtpPurpose } from 'src/user/enum/otpPurpose.enum';
+import { OtpPurpose } from '../../enum/otpPurpose.enum';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
@@ -75,6 +75,7 @@ export class OtpService {
   }
 
   private generateRandomOtp() {
-    return Math.floor(10000 + Math.random() * 900000).toString();
+    // Always 6 digits (VerifyOtpDto enforces Length(6, 6))
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }
