@@ -28,13 +28,13 @@ export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
   // creating community
-  @Post()
+  @Post('create')
   @UseGuards(AuthGuard('jwt'))
   public async create(
     @Body() createCommunityDto: CreateCommunityDto,
     @Req() req: AuthRequest,
   ) {
-    const community = this.communityService.createCommunity(
+    const community = await this.communityService.createCommunity(
       createCommunityDto,
       req.user.sub,
     );

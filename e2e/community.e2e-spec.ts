@@ -51,7 +51,7 @@ describe('CommunityController (e2e) test', () => {
 
   const createCommunity = async (token: string, body: TestCommunity) => {
     const res = await request(testSetup.app.getHttpServer())
-      .post('/communities')
+      .post('/communities/create')
       .set(auth(token))
       .send(body)
       .expect(201);

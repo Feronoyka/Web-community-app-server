@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -22,6 +24,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
@@ -43,7 +46,10 @@ export class AuthService {
     }
 
     const user = await this.userService.create(createUserDto);
-    return user;
+
+    const { accessToken, refreshToken } = this.generateTokens(user);
+
+    return { requires2fa: false, accessToken, refreshToken };
   }
 
   public async login(
@@ -71,7 +77,27 @@ export class AuthService {
 
     // for untrusted device
     const otp = await this.otpService.createOtp(user.id, OtpPurpose.TWO_FA);
-    await this.mailService.sendOtp(user.email, otp, '2fa');
+
+    try {
+      await this.mailService.sendOtp(user.email, otp, '2fa');
+    } catch (err) {
+      // Email misconfiguration (or transient SMTP failure) should not crash the whole login flow.
+      // In production we fail with a clear error; in development we allow login to continue.
+      this.logger.warn(
+        `Failed to send 2FA OTP email to ${user.email}: ${String(
+          (err as Error)?.message ?? err,
+        )}`,
+      );
+
+      if (process.env.NODE_ENV === 'production') {
+        throw new ServiceUnavailableException(
+          'Unable to send verification code. Please try again later.',
+        );
+      }
+
+      // Dev fallback: bypass 2FA so you can keep developing even if SMTP is not configured.
+      return { requires2FA: false, accessToken, refreshToken };
+    }
 
     const tempToken = this.generateTempToken(user.id, '2fa');
 

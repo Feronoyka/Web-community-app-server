@@ -35,7 +35,7 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: false })
   username!: string;
 
-  @Column({ type: 'enum', enum: Pronouns, nullable: true })
+  @Column({ type: 'enum', enum: Pronouns, nullable: true, default: 'None' })
   pronouns!: Pronouns | null;
 
   @Column({ type: 'varchar', length: 300, nullable: true })

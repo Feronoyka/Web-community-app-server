@@ -91,7 +91,6 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect((res) => {
-        // Keep assertions stable: only check fields we control.
         expect(res.body.nickname).toBe(testUser.nickname);
         expect(res.body.username).toBe(testUser.username);
         expect(res.body).not.toHaveProperty('password');

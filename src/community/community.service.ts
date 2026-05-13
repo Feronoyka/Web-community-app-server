@@ -138,6 +138,11 @@ export class CommunityService {
       ...createCommunityDto,
       ownerId,
     });
+
+    if (!community) {
+      throw new NotFoundException('community not found');
+    }
+
     return await this.communityRepository.save(community);
   }
 

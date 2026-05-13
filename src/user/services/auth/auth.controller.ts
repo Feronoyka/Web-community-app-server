@@ -41,6 +41,14 @@ export class AuthController {
     sameSite: 'lax' as const,
     path: '/auth',
   };
+  // Next.js pages like `/sign-in/verify-2fa` need access to these cookies,
+  // so they must not be restricted to `/auth` only.
+  private static readonly APP_COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+  };
   private static readonly REFRESH_COOKIE_NAME = 'refreshToken';
   private static readonly EXPIRES = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -51,9 +59,19 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  public async register(@Body() createUserDto: CreateUserDto) {
-    const user = await this.authService.register(createUserDto);
-    return user;
+  public async register(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken } =
+      await this.authService.register(createUserDto);
+
+    response.cookie(AuthController.REFRESH_COOKIE_NAME, refreshToken, {
+      ...AuthController.COOKIE_OPTIONS,
+      maxAge: AuthController.EXPIRES,
+    });
+
+    return { accessToken, refreshToken };
   }
 
   @Post('login')
@@ -83,11 +101,15 @@ export class AuthController {
     }
 
     response.cookie('tempToken', result.tempToken, {
-      ...AuthController.COOKIE_OPTIONS,
+      ...AuthController.APP_COOKIE_OPTIONS,
       maxAge: 10 * 60 * 1000, // 1 minute
     });
+    // Also return tempToken in JSON because this endpoint is often called
+    // from a Next.js server action (server-to-server), where Set-Cookie
+    // does not automatically reach the browser.
     return new LoginResponseDto({
       requires2FA: true,
+      tempToken: result.tempToken,
     });
   }
 
@@ -120,7 +142,7 @@ export class AuthController {
 
     if (result?.deviceToken) {
       response.cookie('deviceToken', result.deviceToken, {
-        ...AuthController.COOKIE_OPTIONS,
+        ...AuthController.APP_COOKIE_OPTIONS,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     }
@@ -131,7 +153,7 @@ export class AuthController {
     };
   }
 
-  @Post('forgot-password')
+  @Post('reset-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.email);
   }

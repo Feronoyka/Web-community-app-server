@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
-export class MailService {
+export class MailService implements OnModuleInit {
+  private readonly logger = new Logger(MailService.name);
   private transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: parseInt(process.env.MAIL_PORT!),
@@ -12,6 +13,19 @@ export class MailService {
       pass: process.env.MAIL_PASS,
     },
   });
+
+  async onModuleInit() {
+    try {
+      await this.transporter.verify();
+      this.logger.log('Mail transporter verified successfully');
+    } catch (err) {
+      this.logger.warn(
+        `Mail transporter verification failed: ${String(
+          (err as Error)?.message ?? err,
+        )}`,
+      );
+    }
+  }
 
   async sendOtp(email: string, otp: string, purpose: string): Promise<void> {
     const subject =
@@ -24,7 +38,7 @@ export class MailService {
         ? `Your verification code is: <b>${otp}</b>.`
         : `Your password reset code is: <b>${otp}</b>.`;
 
-    await this.transporter.sendMail({
+    const info = await this.transporter.sendMail({
       from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_USER}>`,
       to: email,
       subject,
@@ -38,5 +52,9 @@ export class MailService {
         </div>
       `,
     });
+
+    this.logger.log(
+      `Sent OTP email to ${email} (messageId=${info.messageId}, accepted=${info.accepted?.length ?? 0}, rejected=${info.rejected?.length ?? 0})`,
+    );
   }
 }

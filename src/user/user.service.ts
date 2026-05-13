@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PasswordService } from './services/password/password.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { FindCommunityQueryParams } from '../community/params/find-community-query.params';
+import { Pronouns } from './enum/pronouns.enum';
 
 @Injectable()
 export class UserService {
@@ -78,8 +79,12 @@ export class UserService {
 
     user.avatarUrl = updateUserDto.avatarUrl ?? user.avatarUrl;
     user.username = updateUserDto.username ?? user.username;
-    user.pronouns = updateUserDto.pronouns ?? user.pronouns;
     user.description = updateUserDto.description ?? user.description;
+
+    user.pronouns =
+      updateUserDto.pronouns === Pronouns.None
+        ? null
+        : (updateUserDto.pronouns ?? user.pronouns);
 
     const saved = await this.userRepository.save(user);
     return {
