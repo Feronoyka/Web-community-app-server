@@ -100,4 +100,10 @@ export class ChatGateway implements OnGatewayConnection {
       .to(data.receiverId)
       .emit('newPrivateMessage', message);
   }
+
+  @SubscribeMessage('getMessages')
+  async handleGetMessages(client: Socket, communityId: string) {
+    const messages = await this.chatService.getCommunityMessages(communityId);
+    client.emit('loadMessages', messages);
+  }
 }

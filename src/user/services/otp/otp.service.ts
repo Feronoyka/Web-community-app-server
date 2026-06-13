@@ -15,7 +15,7 @@ export class OtpService {
     private readonly otpRepository: Repository<Otp>,
   ) {}
 
-  async createOtp(userId: string, purpose: OtpPurpose): Promise<string> {
+  async generateOtp(userId: string, purpose: OtpPurpose): Promise<string> {
     await this.otpRepository.delete({ userId, purpose });
 
     const otp = this.generateRandomOtp();
@@ -70,7 +70,6 @@ export class OtpService {
     }
 
     await this.otpRepository.delete({ id: otpRecord.id });
-
     return true;
   }
 

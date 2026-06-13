@@ -15,9 +15,17 @@ import { Conversation } from './chat/entities/conversation.entity';
 import { MailModule } from './user/services/mail/mail.module';
 import { OtpModule } from './user/services/otp/otp.module';
 import { Otp } from './user/services/otp/otp.entity';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute window
+        limit: 10, // max request per minute
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env`,
@@ -46,6 +54,10 @@ import { Otp } from './user/services/otp/otp.entity';
     {
       provide: TypedConfigService,
       useExisting: ConfigService,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

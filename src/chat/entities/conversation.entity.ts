@@ -12,15 +12,15 @@ import { Message } from './message.entity';
 @Entity()
 export class Conversation {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToMany(() => User, (user) => user.conversation)
   @JoinTable()
-  participants: User[];
+  participants!: User[];
 
   @OneToMany(() => Message, (message) => message.conversation)
-  messages: Message[];
+  messages!: Message[];
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

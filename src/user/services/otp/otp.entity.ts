@@ -22,7 +22,7 @@ export class Otp {
   @Column({ default: 0 })
   attempts!: number;
 
-  @Column()
+  @Column({ type: 'timestamptz' })
   expiresAt!: Date;
 
   @ManyToOne(() => User, (user) => user.otps, { onDelete: 'CASCADE' })
@@ -31,6 +31,6 @@ export class Otp {
   @Column()
   userId!: string;
 
-  @CreateDateColumn()
-  createdAt!: string;
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
 }

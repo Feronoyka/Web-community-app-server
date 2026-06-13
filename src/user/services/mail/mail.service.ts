@@ -18,10 +18,10 @@ export class MailService implements OnModuleInit {
     try {
       await this.transporter.verify();
       this.logger.log('Mail transporter verified successfully');
-    } catch (err) {
+    } catch (error) {
       this.logger.warn(
         `Mail transporter verification failed: ${String(
-          (err as Error)?.message ?? err,
+          (error as Error)?.message ?? error,
         )}`,
       );
     }

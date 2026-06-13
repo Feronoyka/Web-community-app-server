@@ -44,6 +44,43 @@ export class ChatService {
       conversationId: target.conversationId,
     });
 
-    return await this.messageRepository.save(message);
+    await this.messageRepository.save(message);
+
+    return await this.messageRepository.findOne({
+      where: { id: message.id },
+      relations: ['sender'],
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        createdAt: true,
+        sender: {
+          id: true,
+          username: true,
+          nickname: true,
+          avatarUrl: true,
+        },
+      },
+    });
+  }
+
+  async getCommunityMessages(communityId: string) {
+    return await this.messageRepository.find({
+      where: { communityId },
+      relations: ['sender'],
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        createdAt: true,
+        sender: {
+          id: true,
+          username: true,
+          nickname: true,
+          avatarUrl: true,
+        },
+      },
+      order: { createdAt: 'ASC' },
+    });
   }
 }

@@ -13,6 +13,7 @@ import { PaginationParams } from '../common/pagination.params';
 import { FindCommunityQueryParams } from './params/find-community-query.params';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { UpdateCommunityDto } from './dto/update-community.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class CommunityService {
@@ -21,6 +22,7 @@ export class CommunityService {
     private readonly communityRepository: Repository<Community>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly userService: UserService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -28,7 +30,9 @@ export class CommunityService {
     filter: FindCommunityQueryParams,
     pagination: PaginationParams,
   ): Promise<[Community[], number]> {
-    const query = this.communityRepository.createQueryBuilder('community');
+    const query = this.communityRepository
+      .createQueryBuilder('community')
+      .leftJoinAndSelect('community.members', 'member');
 
     if (filter.search) {
       query.where('community.name ILIKE :search', {
@@ -58,11 +62,6 @@ export class CommunityService {
 
     if (!community) throw new NotFoundException('Community not found');
 
-    // check if current user already follows this community
-    const isFollowing = currentUserId
-      ? await this.isFollowed(communityId, currentUserId)
-      : false;
-
     // return minimal members
     const membersPreview = await this.userRepository
       .createQueryBuilder('user')
@@ -71,63 +70,69 @@ export class CommunityService {
       .take(10)
       .getMany();
 
+    const isMember = currentUserId
+      ? await this.isMember(communityId, currentUserId)
+      : false;
+
     return {
       ...community,
-      isFollowing,
+      isMember,
       members: membersPreview,
     };
   }
 
-  public async follow(communityId: string, userId: string): Promise<boolean> {
-    return await this.dataSource.transaction(async (manager) => {
-      const community = await manager.findOne(Community, {
-        where: { id: communityId },
-      });
-
-      if (!community) throw new NotFoundException('Community not found');
-
-      if (community.ownerId === userId) {
-        throw new BadRequestException('Owner cannot follow own community');
-      }
-
-      const isFollowing = await manager
-        .createQueryBuilder(User, 'user')
-        .innerJoin('user.followedCommunities', 'community')
-        .where('user.id = :userId AND community.id = :communityId', {
-          userId,
-          communityId,
-        })
-        .getExists();
-
-      if (isFollowing) {
-        throw new ConflictException(
-          'You are already a member of this community',
-        );
-      }
-
-      await manager
-        .createQueryBuilder()
-        .relation(Community, 'members')
-        .of(communityId)
-        .add(userId);
-
-      return true;
+  public async follow(communityId: string, userId: string) {
+    const community = await this.communityRepository.findOne({
+      where: { id: communityId },
     });
+
+    if (!community) throw new NotFoundException('Community not found');
+
+    if (community.ownerId === userId) {
+      throw new BadRequestException('Owner cannot follow own community');
+    }
+
+    const isMember = await this.isMember(communityId, userId);
+
+    if (isMember) {
+      throw new ConflictException('You are already a member of this community');
+    }
+
+    await this.dataSource
+      .createQueryBuilder()
+      .relation(Community, 'members')
+      .of(communityId)
+      .add(userId);
+
+    return {
+      ...community,
+      isMember: true,
+      followerCount: community.followerCount + 1,
+    };
   }
 
-  public async unfollow(communityId: string, userId: string): Promise<boolean> {
-    return await this.dataSource.transaction(async (manager) => {
-      const isFollowing = await this.isFollowed(communityId, userId);
-      if (!isFollowing) return false;
-
-      await manager
-        .createQueryBuilder()
-        .relation(Community, 'members')
-        .of(communityId)
-        .remove(userId);
-
-      return true;
+  public async unfollow(communityId: string, userId: string) {
+    const community = await this.communityRepository.findOne({
+      where: { id: communityId },
     });
+
+    const isMember = await this.isMember(communityId, userId);
+
+    if (!isMember) return false;
+
+    if (!community) throw new NotFoundException('Community not found');
+
+    await this.dataSource
+      .createQueryBuilder()
+      .relation(Community, 'members')
+      .of(communityId)
+      .remove(userId);
+
+    return {
+      ...community,
+      isMember: false,
+      followerCount: community.followerCount - 1,
+    };
   }
 
   public async createCommunity(
@@ -139,8 +144,18 @@ export class CommunityService {
       ownerId,
     });
 
+    const user = await this.userService.findOneById(ownerId);
+
+    if (!user || !user.ownedCommunities) {
+      throw new NotFoundException('User not found');
+    }
+
     if (!community) {
-      throw new NotFoundException('community not found');
+      throw new NotFoundException('Community not found');
+    }
+
+    if (user.ownedCommunities.length >= 5) {
+      throw new BadRequestException('You can only create up to 5 communities');
     }
 
     return await this.communityRepository.save(community);
@@ -170,17 +185,18 @@ export class CommunityService {
     return await this.communityRepository.save(community);
   }
 
-  private async isFollowed(
+  private async isMember(
     communityId: string,
     userId: string,
   ): Promise<boolean> {
     if (!userId) return false;
 
-    return await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.followedCommunities', 'community')
-      .where('user.id = :userId AND community.id = :communityId', {
+    return this.userRepository
+      .createQueryBuilder('community')
+      .innerJoin('community.members', 'member', 'member.id = :userId', {
         userId,
+      })
+      .where('community.id = :communityId', {
         communityId,
       })
       .getExists();

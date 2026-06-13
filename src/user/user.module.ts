@@ -45,6 +45,7 @@ import { ResetTokenGuard } from '../guards/reset-token.guard';
     MailService,
     ResetTokenGuard,
   ],
+  exports: [UserService],
   controllers: [UserController, AuthController],
 })
 export class UserModule {}

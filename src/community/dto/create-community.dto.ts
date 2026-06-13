@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateCommunityDto {
@@ -10,6 +16,14 @@ export class CreateCommunityDto {
     typeof value === 'string' ? value.trim() : value,
   )
   name!: string;
+
+  // @IsString()
+  // @IsOptional()
+  // backgroundUrl?: string;
+
+  @IsOptional()
+  @IsOptional()
+  avatarUrl?: string;
 
   @IsString()
   @MaxLength(650)

@@ -30,7 +30,9 @@ import { VerifyOtpResponseDto } from '../../dto/verify-otp-response.dto';
 import { ForgotPasswordDto } from '../../dto/forgot-password.dto';
 import { ResetTokenGuard } from '../../../guards/reset-token.guard';
 import { ResetConfirmDto } from '../../dto/reset-confirm.dto';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @SerializeOptions({ strategy: 'exposeAll' })
@@ -39,7 +41,7 @@ export class AuthController {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
-    path: '/auth',
+    path: '/',
   };
   // Next.js pages like `/sign-in/verify-2fa` need access to these cookies,
   // so they must not be restricted to `/auth` only.
@@ -100,9 +102,11 @@ export class AuthController {
       };
     }
 
+    const tempTokenExpiryAt = 10 * 60 * 1000; // 10 minutes
+
     response.cookie('tempToken', result.tempToken, {
       ...AuthController.APP_COOKIE_OPTIONS,
-      maxAge: 10 * 60 * 1000, // 1 minute
+      maxAge: tempTokenExpiryAt,
     });
     // Also return tempToken in JSON because this endpoint is often called
     // from a Next.js server action (server-to-server), where Set-Cookie
@@ -114,12 +118,15 @@ export class AuthController {
   }
 
   @Post('verify-2fa')
+  @SkipThrottle({ default: false })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   public async verify2FA(
     @Body() body: VerifyOtpDto,
     @Req() request: ExpressRequest,
     @Res({ passthrough: true }) response: Response,
   ): Promise<VerifyOtpResponseDto> {
     const tempToken = request.cookies?.['tempToken'] as string;
+
     if (!tempToken) throw new UnauthorizedException('Session expired');
 
     const payload: { purpose: string; sub: string } =
@@ -140,10 +147,12 @@ export class AuthController {
       maxAge: AuthController.EXPIRES,
     });
 
+    const deviceTokenExpiryAt = 30 * 24 * 60 * 60 * 1000; // 30 days
+
     if (result?.deviceToken) {
       response.cookie('deviceToken', result.deviceToken, {
         ...AuthController.APP_COOKIE_OPTIONS,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: deviceTokenExpiryAt,
       });
     }
 
@@ -154,11 +163,15 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @SkipThrottle({ default: false })
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Post('verify-reset-otp')
+  @SkipThrottle({ default: false })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   async verifyResetOtp(
     @Body() body: { email: string; otp: string },
     @Res({ passthrough: true }) response: Response,
@@ -168,9 +181,11 @@ export class AuthController {
       body.otp,
     );
 
+    const resetTokenExpiryAt = 15 * 60 * 1000; //15 minutes
+
     response.cookie('resetToken', resetToken, {
       ...AuthController.COOKIE_OPTIONS,
-      maxAge: 15 * 60 * 1000, // 15 minutes,
+      maxAge: resetTokenExpiryAt,
     });
 
     return { message: 'OTP verified' };
@@ -195,13 +210,20 @@ export class AuthController {
 
     response.cookie('refreshToken', result?.refreshToken, {
       ...AuthController.COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: AuthController.EXPIRES,
     });
 
     return {
       accessToken: result?.accessToken,
       refreshToken: result?.refreshToken,
     };
+  }
+
+  @Post('resend-2fa')
+  @SkipThrottle({ default: false })
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  async resend2FA(@Body() body: { email: string }) {
+    return this.authService.resend2FA(body.email);
   }
 
   @Post('logout')
@@ -211,7 +233,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/auth',
+      path: '/',
     });
 
     return { message: 'Logget out successfully' };
@@ -236,16 +258,18 @@ export class AuthController {
   ) {
     const cookies = request.cookies as Record<string, string | undefined>;
     const refreshToken = cookies?.[AuthController.REFRESH_COOKIE_NAME];
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing');
     }
 
     const tokens = await this.authService.refreshToken(refreshToken);
+
     response.cookie(AuthController.REFRESH_COOKIE_NAME, tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/auth',
+      path: '/',
     });
 
     return new LoginResponseDto({

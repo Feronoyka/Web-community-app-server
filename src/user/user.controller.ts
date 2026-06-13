@@ -17,7 +17,9 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUserQueryParams } from './params/find-user.query.param';
 import { PaginationResponse } from '../common/pagination-response.params';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -49,6 +51,7 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     const updatedUser = await this.userService.updateById(id, updateUserDto);
+
     if (!updatedUser) throw new NotFoundException('User not found');
 
     return updatedUser;
@@ -63,6 +66,7 @@ export class UserController {
   // Helper function
   async findOneOrFail(id: string) {
     const user = await this.userService.findOneById(id);
+
     if (!user) throw new NotFoundException('User not found');
 
     return user;

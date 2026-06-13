@@ -46,7 +46,6 @@ export class AuthService {
     }
 
     const user = await this.userService.create(createUserDto);
-
     const { accessToken, refreshToken } = this.generateTokens(user);
 
     return { requires2fa: false, accessToken, refreshToken };
@@ -76,7 +75,7 @@ export class AuthService {
     }
 
     // for untrusted device
-    const otp = await this.otpService.createOtp(user.id, OtpPurpose.TWO_FA);
+    const otp = await this.otpService.generateOtp(user.id, OtpPurpose.TWO_FA);
 
     try {
       await this.mailService.sendOtp(user.email, otp, '2fa');
@@ -111,7 +110,6 @@ export class AuthService {
     await this.otpService.verifyOtp(user.id, otp, OtpPurpose.TWO_FA);
 
     const { accessToken, refreshToken } = this.generateTokens(user);
-
     let deviceToken: string | null = null;
 
     if (trustDevice) {
@@ -131,7 +129,7 @@ export class AuthService {
       return { message: 'The code was sent to this email' };
     }
 
-    const otp = await this.otpService.createOtp(
+    const otp = await this.otpService.generateOtp(
       user.id,
       OtpPurpose.PASSWORD_RESET,
     );
@@ -196,6 +194,18 @@ export class AuthService {
       this.generateTokens(user);
 
     return { accessToken, refreshToken: newRefreshToken };
+  }
+
+  public async resend2FA(email: string) {
+    const user = await this.userRepository.findOneBy({ email });
+
+    if (!user) return { message: 'Code sent' };
+
+    const otp = await this.otpService.generateOtp(user.id, OtpPurpose.TWO_FA);
+    await this.mailService.sendOtp(user.email, otp, '2fa');
+
+    const tempToken = this.generateTempToken(user.id, '2fa');
+    return { message: 'Code sent', tempToken };
   }
 
   public async deleteUser(userId: string) {

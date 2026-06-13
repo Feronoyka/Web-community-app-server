@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PasswordService } from './services/password/password.service';
@@ -12,6 +12,7 @@ import { Pronouns } from './enum/pronouns.enum';
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
     private readonly passwordService: PasswordService,
   ) {}
 
@@ -50,15 +51,21 @@ export class UserService {
 
   // Returns the user for API
   public async findOneById(id: string): Promise<UserResponseDto | null> {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['ownedCommunities'],
+    });
     if (!user) return null;
     return {
       id: user.id,
-      avatarUrl: user.avatarUrl,
+      avatarUrl: user?.avatarUrl,
       username: user.username,
       nickname: user.nickname,
       pronouns: user?.pronouns,
       description: user?.description,
+      email: user.email,
+      ownedCommunities: user?.ownedCommunities ?? [],
+      followedCommunities: user.followedCommunities ?? [],
     };
   }
 
@@ -118,6 +125,9 @@ export class UserService {
 
   // For deleting account
   public async deleteUser(userId: string): Promise<void> {
-    await this.userRepository.delete(userId);
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) return;
+
+    await this.userRepository.remove(user);
   }
 }

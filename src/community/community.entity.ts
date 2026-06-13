@@ -6,40 +6,47 @@ import {
   ManyToOne,
   Entity,
   ManyToMany,
-  JoinTable,
   OneToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity()
 export class Community {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ nullable: true })
   backgroundUrl?: string;
 
-  @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
-  name: string;
+  @Column({ nullable: true })
+  avatarUrl?: string;
 
-  @Column({ type: 'boolean', default: false })
-  isFollowing: boolean;
+  @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
+  name!: string;
 
   @Column({ type: 'varchar', length: 300, nullable: true })
   description?: string;
 
-  @Column({ type: 'int', default: 0 })
-  followerCount: number;
+  @Column({ type: 'int', default: 1 })
+  followerCount!: number;
 
-  @ManyToMany(() => User, (user) => user.followedCommunities)
-  @JoinTable({ name: 'community_members' })
-  members: User[];
+  @ManyToMany(() => User, (user) => user.followedCommunities, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable()
+  members!: User[];
 
   @OneToMany(() => Message, (message) => message.community)
-  messages: Message[];
+  messages!: Message[];
 
-  @ManyToOne(() => User, (user) => user.ownedCommunities, { nullable: false })
-  owner: User;
+  isMember: boolean;
+
+  @ManyToOne(() => User, (user) => user.ownedCommunities, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  owner!: User;
 
   @Column()
-  ownerId: string;
+  ownerId!: string;
 }
