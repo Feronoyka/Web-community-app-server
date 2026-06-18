@@ -7,8 +7,8 @@ export class FindCommunityQueryParams {
   search?: string;
 
   @IsOptional()
-  @IsIn(['followerCount'])
-  sortBy?: string = 'followerCount';
+  @IsIn(['name', 'createdAt'])
+  sortBy?: string = 'name';
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])

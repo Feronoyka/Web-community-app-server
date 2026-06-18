@@ -83,4 +83,42 @@ export class ChatService {
       order: { createdAt: 'ASC' },
     });
   }
+
+  async getPrivateMessages(senderId: string, receiverId: string) {
+    const conversation = await this.getOrCreateConversation(
+      senderId,
+      receiverId,
+    );
+
+    return await this.messageRepository.find({
+      where: { conversationId: conversation.id },
+      relations: ['sender'],
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        createdAt: true,
+        sender: {
+          id: true,
+          username: true,
+          nickname: true,
+          avatarUrl: true,
+        },
+      },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async deleteMessage(messageId: string, userId: string) {
+    const message = await this.messageRepository.findOne({
+      where: { id: messageId },
+    });
+
+    if (!message) return null;
+
+    if (message.senderId !== userId) return null;
+
+    await this.messageRepository.delete({ id: messageId });
+    return { id: messageId };
+  }
 }

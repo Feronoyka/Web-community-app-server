@@ -32,7 +32,8 @@ export class CommunityService {
   ): Promise<[Community[], number]> {
     const query = this.communityRepository
       .createQueryBuilder('community')
-      .leftJoinAndSelect('community.members', 'member');
+      .leftJoinAndSelect('community.members', 'member')
+      .loadRelationCountAndMap('community.membersCount', 'community.members');
 
     if (filter.search) {
       query.where('community.name ILIKE :search', {
@@ -54,7 +55,7 @@ export class CommunityService {
   ): Promise<Community> {
     const query = this.communityRepository
       .createQueryBuilder('community')
-      .loadRelationCountAndMap('community.followerCount', 'community.members')
+      .loadRelationCountAndMap('community.membersCount', 'community.members')
       .leftJoinAndSelect('community.owner', 'owner')
       .where('community.id = :id', { id: communityId });
 
@@ -65,7 +66,7 @@ export class CommunityService {
     // return minimal members
     const membersPreview = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.followedCommunities', 'community')
+      .innerJoin('user.joinedCommunities', 'community')
       .where('community.id = :communityId', { communityId })
       .take(10)
       .getMany();
@@ -81,7 +82,7 @@ export class CommunityService {
     };
   }
 
-  public async follow(communityId: string, userId: string) {
+  public async join(communityId: string, userId: string) {
     const community = await this.communityRepository.findOne({
       where: { id: communityId },
     });
@@ -106,12 +107,10 @@ export class CommunityService {
 
     return {
       ...community,
-      isMember: true,
-      followerCount: community.followerCount + 1,
     };
   }
 
-  public async unfollow(communityId: string, userId: string) {
+  public async leave(communityId: string, userId: string) {
     const community = await this.communityRepository.findOne({
       where: { id: communityId },
     });
@@ -130,8 +129,6 @@ export class CommunityService {
 
     return {
       ...community,
-      isMember: false,
-      followerCount: community.followerCount - 1,
     };
   }
 
@@ -191,7 +188,7 @@ export class CommunityService {
   ): Promise<boolean> {
     if (!userId) return false;
 
-    return this.userRepository
+    return this.communityRepository
       .createQueryBuilder('community')
       .innerJoin('community.members', 'member', 'member.id = :userId', {
         userId,

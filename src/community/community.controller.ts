@@ -156,17 +156,17 @@ export class CommunityController {
   }
 
   // follow to community
-  @Post(':id/follow')
+  @Post(':id/join')
   @UseGuards(AuthGuard('jwt'))
-  public async follow(@Param('id') id: string, @Req() req: AuthRequest) {
-    return await this.communityService.follow(id, req.user.sub);
+  public async join(@Param('id') id: string, @Req() req: AuthRequest) {
+    return await this.communityService.join(id, req.user.sub);
   }
 
   // unfollow from community
-  @Delete(':id/unfollow')
+  @Delete(':id/leave')
   @UseGuards(AuthGuard('jwt'))
-  public async unfollow(@Param('id') id: string, @Req() req: AuthRequest) {
-    return await this.communityService.unfollow(id, req.user.sub);
+  public async leave(@Param('id') id: string, @Req() req: AuthRequest) {
+    return await this.communityService.leave(id, req.user.sub);
   }
 
   // check if the user is the owner of the community

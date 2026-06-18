@@ -16,9 +16,6 @@ export class Community {
   id!: string;
 
   @Column({ nullable: true })
-  backgroundUrl?: string;
-
-  @Column({ nullable: true })
   avatarUrl?: string;
 
   @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
@@ -27,10 +24,10 @@ export class Community {
   @Column({ type: 'varchar', length: 300, nullable: true })
   description?: string;
 
-  @Column({ type: 'int', default: 1 })
-  followerCount!: number;
+  membersCount?: number;
+  isMember?: boolean;
 
-  @ManyToMany(() => User, (user) => user.followedCommunities, {
+  @ManyToMany(() => User, (user) => user.joinedCommunities, {
     onDelete: 'CASCADE',
   })
   @JoinTable()
@@ -38,8 +35,6 @@ export class Community {
 
   @OneToMany(() => Message, (message) => message.community)
   messages!: Message[];
-
-  isMember: boolean;
 
   @ManyToOne(() => User, (user) => user.ownedCommunities, {
     nullable: false,

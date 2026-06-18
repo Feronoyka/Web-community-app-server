@@ -65,7 +65,7 @@ export class UserService {
       description: user?.description,
       email: user.email,
       ownedCommunities: user?.ownedCommunities ?? [],
-      followedCommunities: user.followedCommunities ?? [],
+      joinedCommunities: user.joinedCommunities ?? [],
     };
   }
 

@@ -101,9 +101,42 @@ export class ChatGateway implements OnGatewayConnection {
       .emit('newPrivateMessage', message);
   }
 
-  @SubscribeMessage('getMessages')
+  @SubscribeMessage('getMessagesFromCommunity')
   async handleGetMessages(client: Socket, communityId: string) {
     const messages = await this.chatService.getCommunityMessages(communityId);
-    client.emit('loadMessages', messages);
+    client.emit('loadMessagesFromCommunity', messages);
+  }
+
+  @SubscribeMessage('deleteCommunityMessage')
+  async handleDeleteCommunityMessage(
+    client: Socket<any, any, any, SocketData>,
+    data: { messageId: string; commumityId: string },
+  ) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    const result = await this.chatService.deleteMessage(data.messageId, userId);
+    if (!result) return;
+
+    this.server
+      .to(`community_${data.commumityId}`)
+      .emit('messageDeleted', { messageId: data.messageId });
+  }
+
+  @SubscribeMessage('deletePrivateMessage')
+  async handleDeletePrivateMessage(
+    client: Socket<any, any, any, SocketData>,
+    data: { messageId: string; receiverId: string },
+  ) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    const result = await this.chatService.deleteMessage(data.messageId, userId);
+    if (!result) return;
+
+    this.server
+      .to(userId)
+      .to(data.receiverId)
+      .emit('privateMessageDeleted', { messageId: data.messageId });
   }
 }

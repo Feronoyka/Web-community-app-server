@@ -45,7 +45,7 @@ export class User {
   ownedCommunities!: Community[];
 
   @ManyToMany(() => Community, (community) => community.members)
-  followedCommunities!: Community[];
+  joinedCommunities!: Community[];
 
   @OneToMany(() => Message, (message) => message.sender)
   sentMessages!: Message[];

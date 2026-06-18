@@ -27,5 +27,5 @@ export class UserResponseDto {
   ownedCommunities?: Community[] | null;
 
   @Expose()
-  followedCommunities?: Community[] | null;
+  joinedCommunities?: Community[] | null;
 }
