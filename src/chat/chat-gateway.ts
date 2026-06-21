@@ -107,6 +107,22 @@ export class ChatGateway implements OnGatewayConnection {
     client.emit('loadMessagesFromCommunity', messages);
   }
 
+  @SubscribeMessage('getPrivateMessages')
+  async handleGetPrivateMessages(
+    client: Socket<any, any, any, SocketData>,
+    receiverId: string,
+  ) {
+    const senderId = client.data.userId;
+    if (!senderId) return;
+
+    const messages = await this.chatService.getPrivateMessages(
+      senderId,
+      receiverId,
+    );
+
+    client.emit('loadPrivateMessages', messages);
+  }
+
   @SubscribeMessage('deleteCommunityMessage')
   async handleDeleteCommunityMessage(
     client: Socket<any, any, any, SocketData>,
