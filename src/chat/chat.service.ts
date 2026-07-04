@@ -15,11 +15,18 @@ export class ChatService {
   async getOrCreateConversation(senderId: string, receiverId: string) {
     let conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
-      .innerJoin('conversation.participants', 'user')
-      .where('user.id = :senderUserId AND user.id = :receiverUserId', {
-        senderUserId: senderId,
-        receiverUserId: receiverId,
-      })
+      .innerJoin(
+        'conversation.participants',
+        'sender',
+        'sender.id = :senderId',
+        { senderId },
+      )
+      .innerJoin(
+        'conversation.participants',
+        'receiver',
+        'receiver.id = :receiverId',
+        { receiverId },
+      )
       .getOne();
 
     if (!conversation) {
@@ -97,6 +104,7 @@ export class ChatService {
         id: true,
         content: true,
         senderId: true,
+        conversationId: true,
         createdAt: true,
         sender: {
           id: true,

@@ -14,7 +14,7 @@ export class Conversation {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToMany(() => User, (user) => user.conversation)
+  @ManyToMany(() => User, (user) => user.conversations)
   @JoinTable()
   participants!: User[];
 

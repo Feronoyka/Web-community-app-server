@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { Conversation } from 'src/chat/entities/conversation.entity';
 import { Community } from 'src/community/community.entity';
 
 export class UserResponseDto {
@@ -28,4 +29,7 @@ export class UserResponseDto {
 
   @Expose()
   joinedCommunities?: Community[] | null;
+
+  @Expose()
+  conversations?: Conversation[] | null;
 }

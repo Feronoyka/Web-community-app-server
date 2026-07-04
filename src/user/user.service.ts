@@ -53,7 +53,12 @@ export class UserService {
   public async findOneById(id: string): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['ownedCommunities'],
+      relations: [
+        'ownedCommunities',
+        'joinedCommunities',
+        'conversations',
+        'conversations.participants',
+      ],
     });
     if (!user) return null;
     return {
@@ -65,7 +70,8 @@ export class UserService {
       description: user?.description,
       email: user.email,
       ownedCommunities: user?.ownedCommunities ?? [],
-      joinedCommunities: user.joinedCommunities ?? [],
+      joinedCommunities: user?.joinedCommunities ?? [],
+      conversations: user?.conversations ?? [],
     };
   }
 

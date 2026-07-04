@@ -135,6 +135,7 @@ export class ChatGateway implements OnGatewayConnection {
     if (!result) return;
 
     this.server
+      .to(userId) // checking
       .to(`community_${data.commumityId}`)
       .emit('messageDeleted', { messageId: data.messageId });
   }

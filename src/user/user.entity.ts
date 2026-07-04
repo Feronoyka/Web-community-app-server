@@ -38,7 +38,7 @@ export class User {
   @Column({ type: 'enum', enum: Pronouns, nullable: true, default: 'None' })
   pronouns!: Pronouns | null;
 
-  @Column({ type: 'varchar', length: 300, nullable: true })
+  @Column({ type: 'varchar', length: 620, nullable: true })
   description!: string | null;
 
   @OneToMany(() => Community, (community) => community.owner)
@@ -54,7 +54,7 @@ export class User {
   receivedMessages!: Message[];
 
   @ManyToMany(() => Conversation, (conversation) => conversation.participants)
-  conversation!: Conversation[];
+  conversations!: Conversation[];
 
   @OneToMany(() => Otp, (otp) => otp.user)
   otps!: Otp[];

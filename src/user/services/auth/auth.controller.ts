@@ -188,7 +188,7 @@ export class AuthController {
       maxAge: resetTokenExpiryAt,
     });
 
-    return { message: 'OTP verified' };
+    return { message: 'OTP verified', resetToken };
   }
 
   @Post('reset-confirm')
