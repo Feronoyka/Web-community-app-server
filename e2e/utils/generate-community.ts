@@ -1,4 +1,6 @@
+const randomSuffix = () => Math.random().toString(36).slice(2, 8);
+
 export const generateCommunity = () => ({
-  name: 'Feno',
-  description: 'Hello this is my first community',
+  name: `Community-${randomSuffix()}`,
+  description: 'A community created during e2e tests',
 });

@@ -48,7 +48,7 @@ export class AuthService {
     const user = await this.userService.create(createUserDto);
     const { accessToken, refreshToken } = this.generateTokens(user);
 
-    return { requires2fa: false, accessToken, refreshToken };
+    return { requires2fa: false, accessToken, refreshToken, id: user.id };
   }
 
   public async login(

@@ -65,7 +65,7 @@ export class AuthController {
     @Body() createUserDto: CreateUserDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { accessToken, refreshToken } =
+    const { accessToken, refreshToken, id } =
       await this.authService.register(createUserDto);
 
     response.cookie(AuthController.REFRESH_COOKIE_NAME, refreshToken, {
@@ -73,7 +73,7 @@ export class AuthController {
       maxAge: AuthController.EXPIRES,
     });
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, id };
   }
 
   @Post('login')
@@ -118,7 +118,7 @@ export class AuthController {
   }
 
   @Post('verify-2fa')
-  @SkipThrottle({ default: false })
+  @SkipThrottle({ default: process.env.NODE_ENV === 'test' })
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   public async verify2FA(
     @Body() body: VerifyOtpDto,

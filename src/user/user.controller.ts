@@ -23,6 +23,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { PaginationParams } from 'src/common/pagination.params';
 
 @SkipThrottle()
 @Controller('users')
@@ -32,8 +33,9 @@ export class UserController {
   @Get()
   public async findAll(
     @Query() filter: FindUserQueryParams,
+    @Query() pagination: PaginationParams,
   ): Promise<PaginationResponse<User>> {
-    const [users, total] = await this.userService.findAll(filter);
+    const [users, total] = await this.userService.findAll(filter, pagination);
     return {
       data: users,
       meta: {

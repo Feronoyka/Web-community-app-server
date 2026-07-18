@@ -1,18 +1,20 @@
-const generateRandomName = (length = 6) => {
-  const characters = 'abcdefghijklmnopqrstuvwxyz123456789';
-  let result = '';
+const ALPHANUMERIC = 'abcdefghijklmnopqrstuvwxyz123456789';
 
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomIndex);
+const randomString = (length = 6): string => {
+  let value = '';
+
+  for (let index = 0; index < length; index++) {
+    value += ALPHANUMERIC.charAt(
+      Math.floor(Math.random() * ALPHANUMERIC.length),
+    );
   }
 
-  return result;
+  return value;
 };
 
 export const generateUser = () => ({
-  nickname: generateRandomName(),
-  username: generateRandomName(),
-  email: `user${Date.now()}${generateRandomName(4)}@test.com`,
+  nickname: randomString(8),
+  username: randomString(8),
+  email: `user-${Date.now()}-${randomString(4)}@test.com`,
   password: 'Password123$',
 });

@@ -13,6 +13,14 @@ export class UpdateUserDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
+  nickname?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   username?: string;
 
   @IsOptional()

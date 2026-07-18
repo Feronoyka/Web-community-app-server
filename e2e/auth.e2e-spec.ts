@@ -1,127 +1,105 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { TestUser } from './model/test-user.model';
-import { TestSetup } from './utils/test-setup';
+import { AuthClient, bearerAuth } from './utils/auth-client';
 import { generateUser } from './utils/generate-user';
+import { TestSetup } from './utils/test-setup';
 
 describe('AuthController (e2e)', () => {
-  let testSetup: TestSetup;
-  let testUser: TestUser;
-
-  const register = (user: TestUser) =>
-    request(testSetup.app.getHttpServer()).post('/auth/register').send(user);
-
-  const login = (user: TestUser) =>
-    request(testSetup.app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: user.email, password: user.password });
-
-  const registerAndLogin = async (user: TestUser) => {
-    await register(user).expect(201);
-
-    // Login now requires 2FA for first-time/untrusted devices.
-    // We keep cookies using a supertest agent so `/auth/verify-2fa` can read `tempToken`.
-    const agent = request.agent(testSetup.app.getHttpServer());
-
-    const loginRes = await agent
-      .post('/auth/login')
-      .send({ email: user.email, password: user.password })
-      .expect(201);
-
-    expect(loginRes.body.requires2FA).toBe(true);
-
-    const otp = testSetup.sentOtps.get(user.email);
-    expect(otp).toBeDefined();
-
-    const verifyRes = await agent
-      .post('/auth/verify-2fa')
-      .send({ otp, trustDevice: false, purpose: '2fa' })
-      .expect(201);
-
-    expect(verifyRes.body.accessToken).toBeDefined();
-    return verifyRes.body.accessToken as string;
-  };
+  let setup: TestSetup;
+  let auth: AuthClient;
+  let user: TestUser;
 
   beforeAll(async () => {
-    testSetup = await TestSetup.create(AppModule);
+    setup = await TestSetup.create(AppModule);
+    auth = new AuthClient(setup);
   });
 
   beforeEach(() => {
-    testUser = generateUser();
+    user = generateUser();
   });
 
   afterEach(async () => {
-    await testSetup.cleanup();
+    await setup.resetDatabase();
   });
 
   afterAll(async () => {
-    await testSetup.teardown();
+    await setup.close();
   });
 
-  it('Register - POST /auth/register', async () => {
-    return await register(testUser)
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.email).toBe(testUser.email);
-        expect(res.body.nickname).toBe(testUser.nickname);
-        expect(res.body).not.toHaveProperty('password');
-      });
+  describe('POST /auth/register', () => {
+    it('creates a user and returns auth tokens', async () => {
+      const response = await auth.register(user).expect(201);
+
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
+      expect(response.body).not.toHaveProperty('password');
+    });
+
+    it('rejects duplicate email with 409', async () => {
+      await auth.register(user).expect(201);
+
+      await auth.register(user).expect(409);
+    });
   });
 
-  it('Login - POST /auth/login', async () => {
-    await register(testUser).expect(201);
+  describe('POST /auth/login', () => {
+    it('requires 2FA for a new device', async () => {
+      await auth.register(user).expect(201);
 
-    const response = await login(testUser).expect(201);
-    expect(response.body.requires2FA).toBe(true);
+      const response = await auth.login(user).expect(201);
+
+      expect(response.body.requires2FA).toBe(true);
+      expect(setup.sentOtps.get(user.email)).toBeDefined();
+    });
   });
 
-  it('Register duplicate email - POST /auth/register', async () => {
-    await register(testUser).expect(201);
+  describe('GET /auth/profile', () => {
+    it('returns the authenticated user profile', async () => {
+      const { accessToken } = await auth.registerAndLogin(user);
 
-    return await register(testUser).expect(409);
+      const response = await request(setup.getHttpServer())
+        .get('/auth/profile')
+        .set(bearerAuth(accessToken))
+        .expect(200);
+
+      expect(response.body.nickname).toBe(user.nickname);
+      expect(response.body.username).toBe(user.username);
+      expect(response.body.email).toBe(user.email);
+      expect(response.body).not.toHaveProperty('password');
+    });
+
+    it('returns 401 when the token is invalid', async () => {
+      await auth.register(user).expect(201);
+
+      await request(setup.getHttpServer())
+        .get('/auth/profile')
+        .set(bearerAuth('invalid-token'))
+        .expect(401);
+    });
   });
 
-  it('Get own profile - GET /auth/profile', async () => {
-    const token = await registerAndLogin(testUser);
+  describe('POST /auth/logout', () => {
+    it('clears the refresh cookie and returns success', async () => {
+      const { accessToken } = await auth.registerAndLogin(user);
 
-    return await request(testSetup.app.getHttpServer())
-      .get('/auth/profile')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.nickname).toBe(testUser.nickname);
-        expect(res.body.username).toBe(testUser.username);
-        expect(res.body).not.toHaveProperty('password');
-      });
+      const response = await request(setup.getHttpServer())
+        .post('/auth/logout')
+        .set(bearerAuth(accessToken))
+        .expect(200);
+
+      expect(response.body.message).toBeDefined();
+    });
   });
 
-  it('Get own profile without valid token - GET /auth/profile', async () => {
-    await register(testUser).expect(201);
-    await login(testUser).expect(201);
+  describe('DELETE /auth/account', () => {
+    it('deletes the authenticated account', async () => {
+      const { accessToken } = await auth.registerAndLogin(user);
 
-    return await request(testSetup.app.getHttpServer())
-      .get('/auth/profile')
-      .set('Authorization', 'Bearer xxx')
-      .expect(401);
-  });
-
-  it('Logout - POST /auth/logout', async () => {
-    const token = await registerAndLogin(testUser);
-
-    return await request(testSetup.app.getHttpServer())
-      .post('/auth/logout')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-  });
-
-  it('Delete own user account - DELETE /auth/account', async () => {
-    const token = await registerAndLogin(testUser);
-
-    return await request(testSetup.app.getHttpServer())
-      .delete('/auth/account')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(204);
+      await request(setup.getHttpServer())
+        .delete('/auth/account')
+        .set(bearerAuth(accessToken))
+        .expect(204);
+    });
   });
 });

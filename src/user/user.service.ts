@@ -7,6 +7,7 @@ import { PasswordService } from './services/password/password.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { FindCommunityQueryParams } from '../community/params/find-community-query.params';
 import { Pronouns } from './enum/pronouns.enum';
+import { PaginationParams } from 'src/common/pagination.params';
 
 @Injectable()
 export class UserService {
@@ -33,11 +34,9 @@ export class UserService {
 
   public async findAll(
     filter: FindCommunityQueryParams,
+    pagination: PaginationParams,
   ): Promise<[User[], number]> {
-    const query = this.userRepository
-      .createQueryBuilder('user')
-      .take(5)
-      .skip(0);
+    const query = this.userRepository.createQueryBuilder('user');
 
     if (filter.search) {
       query.where(
@@ -46,7 +45,10 @@ export class UserService {
       );
     }
 
-    return await query.getManyAndCount();
+    return await query
+      .offset(pagination.offset)
+      .limit(pagination.limit)
+      .getManyAndCount();
   }
 
   // Returns the user for API
@@ -84,7 +86,10 @@ export class UserService {
   public async updateById(
     id: string,
     updateUserDto: Partial<
-      Pick<User, 'avatarUrl' | 'username' | 'pronouns' | 'description'>
+      Pick<
+        User,
+        'avatarUrl' | 'nickname' | 'username' | 'pronouns' | 'description'
+      >
     >,
   ): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findOneBy({ id });
@@ -92,6 +97,7 @@ export class UserService {
 
     user.avatarUrl = updateUserDto.avatarUrl ?? user.avatarUrl;
     user.username = updateUserDto.username ?? user.username;
+    user.nickname = updateUserDto.nickname ?? user.nickname;
     user.description = updateUserDto.description ?? user.description;
 
     user.pronouns =

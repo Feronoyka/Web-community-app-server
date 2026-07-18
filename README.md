@@ -1,29 +1,6 @@
-<!-- <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
-Web community app built by NestJs framework, postgres database, typeORM relation, Websocket, real-time, RESTful API and with authentication and authorization feature and with complete e2e test
+Web community app built on stack: NestJs, postgreSQL, typeORM, Socket.io, RESTful API, JWT auth, with complete e2e test on Jest
 
 ## Project setup
 
@@ -34,23 +11,38 @@ $ npm install
 ## Compile and run the project
 
 ```bash
-# development
-$ npm run start
+# First compile
+npm run build
+# make sure that dist folder appeared if npm run built doesn't work use:
+npx tsc
 
-# watch mode
+# Then run in dev mode
 $ npm run start:dev
 ```
 
+Actually running in dev mode doesn't require dist folder after compiling, but cause of issue in nestJs without dist folder can't run in dev mode, so you must have dist folder
+
 ## Run tests
 
-```bash
-# unit tests
-$ npm run test
+There is no unit test so only e2e tests
 
+```bash
 # e2e tests
 $ npm run test:e2e
 ```
 
+## Run docker
+
+```
+Docker compose up
+```
+
 ## Deployment
 
-There is no deployment information yet -->
+Deploy this project on service where support typeORM for example on Digital Ocean
+
+## NOTE
+
+In nest-cli.json file the `deleteOutDir: false`, it means if set true the Project won't run in dev mode, by default running on dev doesn't require dist file but I tried many attempts to solve this
+
+In `package.json nest build` by default doesn't work, It doesn't compile so I changed the value from `nest build` to `npx tsc`

@@ -60,6 +60,7 @@ export class ChatService {
         id: true,
         content: true,
         senderId: true,
+        communityId: true,
         createdAt: true,
         sender: {
           id: true,
