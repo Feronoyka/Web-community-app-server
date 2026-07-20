@@ -2,6 +2,11 @@
 
 Web community app built on stack: NestJs, postgreSQL, typeORM, Socket.io, RESTful API, JWT auth, with complete e2e test on Jest
 
+## System atchitecture of backend
+
+<img width="8619" height="5556" alt="System-architecture-of-ventus-forum" src="https://github.com/user-attachments/assets/3eecc2cf-54c5-4ad5-a5bf-1a002b8329f7" />
+
+
 ## Project setup
 
 ```bash
