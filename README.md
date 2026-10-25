@@ -1,11 +1,13 @@
-## Description
+# Description
 
 Web community app built on stack: NestJs, postgreSQL, typeORM, Socket.io, RESTful API, JWT auth, with complete e2e test on Jest
+
+## System architecture on excalidraw
 
 ## Project setup
 
 ```bash
-$ npm install
+ npm install
 ```
 
 ## Compile and run the project
@@ -33,7 +35,7 @@ $ npm run test:e2e
 
 ## Run docker
 
-```
+```bash
 Docker compose up
 ```
 

@@ -23,7 +23,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { PaginationParams } from 'src/common/pagination.params';
+import { PaginationParams } from '../common/pagination.params';
 
 @SkipThrottle()
 @Controller('users')

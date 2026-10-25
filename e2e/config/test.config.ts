@@ -9,11 +9,11 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export const testConfig = {
   database: {
     type: 'postgres',
-    host: process.env.DB_HOST ?? 'localhost',
+    host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT ?? 5432),
-    username: process.env.DB_USERNAME ?? 'postgres',
-    password: process.env.DB_PASSWORD ?? 'xd62ix1o1f41ck',
-    database: process.env.DB_NAME ?? 'feno',
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     synchronize: true,
   } satisfies TypeOrmModuleOptions,
 

@@ -36,6 +36,9 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  //-------------------------------------------
+  // registration
+
   public async register(createUserDto: CreateUserDto) {
     const existingUser = await this.userService.findOneByEmailWithPassword(
       createUserDto.email,
@@ -50,6 +53,9 @@ export class AuthService {
 
     return { requires2fa: false, accessToken, refreshToken, id: user.id };
   }
+
+  // -------------------------------------
+  // login
 
   public async login(
     email: string,
@@ -103,6 +109,9 @@ export class AuthService {
     return { requires2FA: true, tempToken };
   }
 
+  // --------------------------------------------------
+  // 2fa
+
   public async verify2FA(userId: string, otp: string, trustDevice: boolean) {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) return null;
@@ -122,6 +131,9 @@ export class AuthService {
     return { accessToken, refreshToken, deviceToken };
   }
 
+  //---------------------------------------------------------
+  //forgotPassword
+
   public async forgotPassword(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
 
@@ -138,6 +150,9 @@ export class AuthService {
     return { message: 'The code was sent to this email' };
   }
 
+  //--------------------------------------------------------
+  //resetOtp
+
   public async verifyResetOtp(email: string, otp: string) {
     const user = await this.userRepository.findOneBy({ email });
 
@@ -147,6 +162,9 @@ export class AuthService {
 
     return { resetToken: this.generateTempToken(user.id, 'password_reset') };
   }
+
+  //------------------------------------------------------
+  //resetPassword
 
   public async resetPassword(
     userId: string,
@@ -168,6 +186,9 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  //-----------------------------------------------
+  // refreshToken
 
   public async refreshToken(refreshToken: string) {
     const authConfig = this.configService.get<AuthConfig>('auth');
@@ -196,6 +217,9 @@ export class AuthService {
     return { accessToken, refreshToken: newRefreshToken };
   }
 
+  //-------------------------------------
+  //recend2fa
+
   public async resend2FA(email: string) {
     const user = await this.userRepository.findOneBy({ email });
 
@@ -208,9 +232,15 @@ export class AuthService {
     return { message: 'Code sent', tempToken };
   }
 
+  //-----------------------------
+  //deleteUser
+
   public async deleteUser(userId: string) {
     return await this.userService.deleteUser(userId);
   }
+
+  //------------------------------------------------------
+  //generateTokens
 
   private generateTokens(user: User) {
     const authConfig = this.configService.get<AuthConfig>('auth');
@@ -239,14 +269,22 @@ export class AuthService {
     return { accessToken: jwtAccessToken, refreshToken: jwtRefreshToken };
   }
 
+  //------------------------------------------------
+  //generateTempToken
+
+  // for forgot password
   private generateTempToken(userId: string, purpose: string) {
     return this.jwtService.sign({ sub: userId, purpose }, { expiresIn: '5m' });
   }
+
+  //------------------------------------
+  //generateDeviceToken
 
   private generateDeviceToken() {
     return crypto.randomUUID();
   }
 
+  //method for expiring jwt
   private toJwtExpiresIn(expiresIn: string | number): number | StringValue {
     if (typeof expiresIn === 'number') {
       return expiresIn;

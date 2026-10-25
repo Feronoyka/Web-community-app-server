@@ -7,7 +7,7 @@ import { PasswordService } from './services/password/password.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { FindCommunityQueryParams } from '../community/params/find-community-query.params';
 import { Pronouns } from './enum/pronouns.enum';
-import { PaginationParams } from 'src/common/pagination.params';
+import { PaginationParams } from '../common/pagination.params';
 
 @Injectable()
 export class UserService {
